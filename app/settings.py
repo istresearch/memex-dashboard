@@ -88,3 +88,9 @@ USE_TZ = True
 STATIC_URL =  os.environ.get('STATIC_URL', '/static/')
 
 TEMPLATE_DIRS = os.environ.get('TEMPLATE_DIRS', '').split(',')
+
+# ElasticSearch
+ELASTICSEARCH = {
+    'hosts': os.environ.get('ES_HOSTS', 'localhost').split(','),
+    'index': 'memex'
+}
