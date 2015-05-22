@@ -5,6 +5,7 @@
 */
 
 (function($) {
+    var app = {};
 
 	skel.breakpoints({
 		desktop: '(min-width: 737px)',
@@ -83,5 +84,11 @@
 						.css('transition', 'none');
 
 	});
+
+    $(function() {
+        if (!app.domain)
+            app.domain = $("a.set-domain").first().attr("data-key");
+        $("#content").load("domain/" + app.domain);
+    });
 
 })(jQuery);

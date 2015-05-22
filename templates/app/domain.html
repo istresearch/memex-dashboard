@@ -1,0 +1,8 @@
+<div class="inner">
+    {% for host in hosts.buckets %}
+    <p><a href="#">{{ host.key }}</a> ({{ host.doc_count }})</p>
+    {% endfor %}
+    {% if hosts.sum_other_doc_count %}
+    <p><a href="#">Other</a> ({{ hosts.sum_other_doc_count }})</p>
+    {% endif  %}
+</div>
