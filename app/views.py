@@ -9,9 +9,7 @@ from django.contrib.sites.shortcuts import get_current_site
 import settings
 
 def index(request):
-    response = {
-        'site': get_current_site(request)
-    }
+    response = { 'site': get_current_site(request) }
     response['domains'] = _aggregate("attrs.domain", size=0)
     return render(request, 'app/index.html', response)
 
@@ -32,7 +30,7 @@ def get(request, _type, _id):
 
 
 def domain(request, _domain):
-    response = RESPONSE_DEFAULTS
+    response = {}
     _filter = { "domain": _domain }
     response['domain'] = _domain
     response['hosts'] = _aggregate("response.server.hostname", filter=_filter)
