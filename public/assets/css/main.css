@@ -2420,7 +2420,7 @@
 					display: block;
 					background-color: #c56544;
 					background-image: url("images/bg01.png");
-					padding: 0.875em 0.25em;
+					padding: 0.5em 0.25em 0.25em 0.25em;
 					border-radius: 0.2em;
 					text-align: center;
 					box-shadow: inset 0px 0px 0px 1px rgba(255, 255, 255, 0.15), 0 0.025em 0.15em 0em rgba(0, 0, 0, 0.25);
@@ -2450,7 +2450,7 @@
 		/* Sidebar */
 
 			#sidebar {
-				position: absolute;
+				position: fixed;
 				top: 0;
 			}
 
