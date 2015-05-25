@@ -1,6 +1,7 @@
 import json
 
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch 
+from elasticsearch.client import IndicesClient
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
@@ -9,8 +10,12 @@ from django.contrib.sites.shortcuts import get_current_site
 import settings
 
 def index(request):
-    response = { 'site': get_current_site(request) }
-    response['domains'] = _aggregate("attrs.domain", size=0)
+    response = { 'site': get_current_site(request), 'domains': [] }
+    client = IndicesClient(Elasticsearch(settings.ELASTICSEARCH['hosts']))
+    for idx in client.get(index=settings.ELASTICSEARCH['index'], feature='_mappings'):
+        mappings =  client.get(index=settings.ELASTICSEARCH['index'], feature='_mappings')[idx]['mappings']
+        for mapping in mappings:
+            response['domains'].append(mapping)
     return render(request, 'app/index.html', response)
 
 @csrf_exempt
@@ -33,12 +38,13 @@ def domain(request, _domain):
     response = {}
     _filter = { "domain": _domain }
     response['domain'] = _domain
-    response['hosts'] = _aggregate("response.server.hostname", filter=_filter)
+    response['hosts'] = _aggregate("url.hostname", filter=_filter)
     return render(request, 'app/domain.html', response)
     
     
 
 # TODO: Move helpers to their own modules
+
 
 def _aggregate(field, size=10, filter=None):
     client = Elasticsearch(settings.ELASTICSEARCH['hosts'])

@@ -33,8 +33,8 @@
 						</header>
 						<ul>
 							<!-- <li><a href="#">All Domains</a></li> -->
-                            {% for domain in domains.buckets %}
-							<li><a class="set-domain" data-key="{{domain.key}}" href="#">{{ domain.key|upper }} <span style="float:right">({{ domain.doc_count|intcomma }})</span></a></li>
+                            {% for domain in domains %}
+							<li><a class="set-domain" data-key="{{domain}}" href="#">{{ domain|capfirst }}</a></li>
                             {% endfor %}
 						</ul>
 					</nav>
