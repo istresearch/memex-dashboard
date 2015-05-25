@@ -93,5 +93,5 @@ TEMPLATE_DIRS = os.environ.get('TEMPLATE_DIRS', '').split(',')
 # ElasticSearch
 ELASTICSEARCH = {
     'hosts': os.environ.get('ES_HOSTS', 'localhost').split(','),
-    'index': 'memex'
+    'index': os.environ.get('ES_INDEX', 'memex')
 }
