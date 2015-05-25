@@ -1,9 +1,35 @@
 {% load humanize %}
-<div class="inner">
-    {% for host in hosts.buckets %}
-    <p><a href="#">{{ host.key }}</a> ({{ host.doc_count|intcomma }})</p>
-    {% endfor %}
-    {% if hosts.sum_other_doc_count %}
-    <p><a href="#">Other</a> ({{ hosts.sum_other_doc_count|intcomma }})</p>
-    {% endif  %}
+<div id="domain-sidebar">
+    <nav id="nav">
+        <header>
+            <h2>{{ domain|capfirst }} by Team</h2>
+        </header>
+        <ul>
+            {% for team in teams.buckets %}
+            <li><a class="set-team" data-key="{{team.key}}" href="#">{{ team.key|upper }} <span style='float:right'>({{ team.doc_count|intcomma }})</span></a></li>
+            {% endfor %}
+        {% if teams.sum_other_doc_count %}
+            <li><a class="set-team-other" href="#">Other <span style='float:right'>({{ teams.sum_other_doc_count|intcomma }})</span></a></li>
+        {% endif  %}
+        {% if teams.sum_none_doc_count %}
+            <li><a class="set-team-none" href="#">None <span style='float:right'>({{ teams.sum_none_doc_count|intcomma }})</span></a></li>
+        {% endif  %}
+        </ul>
+    </nav>
+</div>
+<div id="content">
+    <div class="inner">
+        <ul class="hosts">
+        {% for host in hosts.buckets %}
+        <li><a href="#">{{ host.key }}</a> ({{ host.doc_count|intcomma }})</li>
+        {% endfor %}
+        {% if hosts.sum_other_doc_count %}
+        <li><a href="#">Other</a> ({{ hosts.sum_other_doc_count|intcomma }})</li>
+        {% endif  %}
+        {% if hosts.sum_none_doc_count %}
+        <li><a href="#">None</a> ({{ hosts.sum_none_doc_count|intcomma }})</li>
+        {% endif  %}
+        <li class="stretch"></li>
+        </ul>
+    </div>
 </div>

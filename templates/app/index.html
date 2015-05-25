@@ -14,10 +14,7 @@
 
 		<!-- Content -->
 			<div id="content">
-				<div class="inner">
-
-
-				</div>
+				<div class="inner"></div>
 			</div>
 
 		<!-- Sidebar -->
@@ -33,12 +30,12 @@
 						</header>
 						<ul>
 							<!-- <li><a href="#">All Domains</a></li> -->
-                            {% for domain in domains %}
-							<li><a class="set-domain" data-key="{{domain}}" href="#">{{ domain|capfirst }}</a></li>
+                            {% for domain in domains.buckets %}
+							<li><a class="set-domain" data-key="{{domain.key}}" href="#">{{ domain.key|capfirst }} <span style='float:right'>({{ domain.doc_count|intcomma }})</span></a></li>
                             {% endfor %}
 						</ul>
 					</nav>
-
+                    <div id="domain-sidebar"></div>
 			</div>
 
 		<!-- Scripts -->
@@ -47,5 +44,6 @@
 			<script src="static/assets/js/util.js"></script>
 			<script src="static/assets/js/main.js"></script>
 
+            <div id="context" style="display:none;"></div>
 	</body>
 </html>

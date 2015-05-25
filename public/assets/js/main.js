@@ -86,9 +86,22 @@
 	});
 
     $(function() {
-        if (!app.domain)
-            app.domain = $("a.set-domain").first().attr("data-key");
-        $("#content").load("domain/" + app.domain);
+        
+        //event handlers
+        $('#sidebar').on("click", ".set-domain", function() {
+            console.log("bar");
+            app.domain = $(this).attr("data-key");
+            $("#context").load("domain/" + app.domain, function() {
+                var fragments = ["#content", "#domain-sidebar"];
+                for (var ii = 0; ii < fragments.length; ii++) {
+                    $(fragments[ii]).html($(fragments[ii], "#context").html());
+                }
+                $("#context").empty();
+            });
+        });
+        
+        //init
+        app.domain = $("a.set-domain").first().click();
     });
 
 })(jQuery);

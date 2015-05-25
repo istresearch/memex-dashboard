@@ -2931,3 +2931,14 @@
 			}
 
 	}
+
+ul.hosts {
+    text-align: justify;
+}
+ul.hosts li {
+    display: inline-block;
+    margin-right: 20px;
+}
+ul li.stretch {
+    width: 100%;
+}
