@@ -1,0 +1,24 @@
+{% load humanize %}
+{% load timetags %}
+
+<div id="get">
+    <div><span class="title">URL:</span> <a href="{{source.url}}" target="_blank">{{ source.url }}</a></div>
+    <div><span class="title">Timestamp:</span> {{ source.timestamp|ts }}</div>
+    {% if source.images %}
+    <div class="images">
+    <span class="title">Images:</span>
+    {% for image in source.images %}
+        <a href="{{image}}" target="_blank"><img src="{{image}}"></a>
+    {% endfor %}
+    </div>
+    {% endif %}
+    {% if source.videos %}
+    <div class="videos">
+    <span class="title">Videos:</span>
+    {% for video in source.videos %}
+        <p><a href="{{video}}" target="_blank">{{video}}</a></p>
+    {% endfor %}
+    </div>
+    {% endif %}
+    <div class="content"><span class="title">Content:</span> <pre>{{ source.content }}</pre></div>
+</div>

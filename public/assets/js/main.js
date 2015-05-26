@@ -5,7 +5,7 @@
 */
 
 (function($) {
-    var app = { pagesize: 20 };
+    var app = { pagesize: 50 };
 
 	skel.breakpoints({
 		desktop: '(min-width: 737px)',
@@ -129,6 +129,16 @@
             app.url = "domain/" + app.domain + "?f=" + app.filter + "&d=" + app.pagesize + "&o=" + app.pagesize * app.page;
             app.load(["content", "nav", "domain-sidebar"]);
             return false;
+        });
+
+        $('#content').on('click', '.show-scrape', function() {
+            var url = $(this).attr('data-url');
+            //$(this).attr('target', '_blank');
+            //$(this).attr('href', url);
+            $.get(url, function(data) {
+                $.featherlight(data);
+            });
+            return false
         });
         
         //init

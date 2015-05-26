@@ -2955,3 +2955,11 @@ span.center { display: block; }
 .load-next { float: right; }
 
 a { text-decoration: none; }
+
+#get { max-width: 960px; }
+#get * { vertical-align: top;}
+#get .images img { max-width: 120px; height: auto; margin-left: 5px; }
+#get .title { display: inline-block; width: 100px; }
+#get .content .title { float: left; }
+#get .content pre { margin-left: 100px; }
+#get > div { margin-bottom: 20px; }

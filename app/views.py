@@ -33,7 +33,10 @@ def get(request, _type, _id):
     del response["_type"]
     response["source"] = response["_source"]
     del response["_source"]
-    return HttpResponse(json.dumps(response), 'application/json')
+    _format = request.GET.get('format', '')
+    if _format == 'json':
+        return HttpResponse(json.dumps(response), 'application/json')
+    return render(request, 'app/get.html', response)
 
 def domain(request, _domain):
     response = {}
@@ -57,7 +60,7 @@ def domain(request, _domain):
     response['has_next'] = offset + docs < response['sites']['doc_count']
     first = offset + 1
     last = offset + len(response['sites']['docs'])
-    response['pageinfo'] = "{}-{} of {}".format(offset + 1, last, response['sites']['doc_count'])
+    response['pageinfo'] = { 'first': first, 'last': last, 'total': response['sites']['doc_count'] }
     _format = request.GET.get('format', '')
     if _format == 'json':
         return HttpResponse(json.dumps(response), 'application/json')
