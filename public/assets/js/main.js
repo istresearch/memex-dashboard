@@ -5,7 +5,7 @@
 */
 
 (function($) {
-    var app = {};
+    var app = { pagesize: 20 };
 
 	skel.breakpoints({
 		desktop: '(min-width: 737px)',
@@ -85,23 +85,54 @@
 
 	});
 
+    //helpers
+    app.load = function(fragments) {
+        $("#context").load(app.url, function() {
+            for (var ii = 0; ii < fragments.length; ii++) {
+                $("#" + fragments[ii]).html($("#" + fragments[ii], "#context").html());
+            }
+            $("#context").empty();
+        });
+    };
+
     $(function() {
         
         //event handlers
-        $('#sidebar').on("click", ".set-domain", function() {
-            console.log("bar");
+        $('#sidebar, #content').on("click", '.go-home', function() {
+            window.location.reload();
+        });
+
+        $('#sidebar, #content').on("click", ".set-domain", function() {
             app.domain = $(this).attr("data-key");
-            $("#context").load("domain/" + app.domain, function() {
-                var fragments = ["#content", "#domain-sidebar"];
-                for (var ii = 0; ii < fragments.length; ii++) {
-                    $(fragments[ii]).html($(fragments[ii], "#context").html());
-                }
-                $("#context").empty();
-            });
+            app.page = 0;
+            app.filter = "";
+            app.url = "domain/" + app.domain + "?d=" + app.pagesize;
+            app.load(["content", "nav", "domain-sidebar"]);
+        });
+
+        $('#sidebar, #content').on('click', '.filter-domain', function() {
+            app.page = 0;
+            app.filter = $(this).attr('data-field') + ":" + $(this).attr('data-key');
+            app.url = "domain/" + app.domain + "?f=" + app.filter + "&d=" + app.pagesize + "&o=" + app.pagesize * app.page;
+            app.load(["content", "nav", "domain-sidebar"]);
+        });
+
+        $('#content').on('click', '.load-next', function() {
+            app.page += 1;
+            app.url = "domain/" + app.domain + "?f=" + app.filter + "&d=" + app.pagesize + "&o=" + app.pagesize * app.page;
+            app.load(["content", "nav", "domain-sidebar"]);
+            return false;
+        });
+
+        $('#content').on('click', '.load-prev', function() {
+            app.page -= 1;
+            app.url = "domain/" + app.domain + "?f=" + app.filter + "&d=" + app.pagesize + "&o=" + app.pagesize * app.page;
+            app.load(["content", "nav", "domain-sidebar"]);
+            return false;
         });
         
         //init
-        app.domain = $("a.set-domain").first().click();
+        $("a.set-domain").first().click();
     });
 
 })(jQuery);

@@ -1,49 +1,52 @@
 <!DOCTYPE HTML>
 {% load humanize %}
 <html>
-	<head>
-		<title>{{ site.name }}</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<!--[if lte IE 8]><script src="static/assets/css/ie/html5shiv.js"></script><![endif]-->
-		<link rel="stylesheet" href="static/assets/css/main.css" />
-		<!--[if lte IE 8]><link rel="stylesheet" href="static/assets/css/ie/v8.css" /><![endif]-->
-		<!--[if lte IE 8]><script src="static/assets/css/ie/respond.min.js"></script><![endif]-->
-	</head>
-	<body>
+    <head>
+        <title>{{ site.name }}</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <!--[if lte IE 8]><script src="static/assets/css/ie/html5shiv.js"></script><![endif]-->
+        <link rel="stylesheet" href="static/assets/css/main.css" />
+        <!--[if lte IE 8]><link rel="stylesheet" href="static/assets/css/ie/v8.css" /><![endif]-->
+        <!--[if lte IE 8]><script src="static/assets/css/ie/respond.min.js"></script><![endif]-->
+        <link rel="icon" type="image/png" href="static/favicon-32x32.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="static/favicon-96x96.png" sizes="96x96">
+        <link rel="icon" type="image/png" href="static/favicon-16x16.png" sizes="16x16">
+    </head>
+    <body>
 
-		<!-- Content -->
-			<div id="content">
-				<div class="inner"></div>
-			</div>
+        <!-- Content -->
+            <div id="content">
+                <div class="inner"></div>
+            </div>
 
-		<!-- Sidebar -->
-			<div id="sidebar">
+        <!-- Sidebar -->
+            <div id="sidebar">
 
-				<!-- Logo -->
-					<h1 id="logo"><a class="go-home" href="#">MEMEX <span style="font-size:10pt">DASHBOARD</span></a></h1>
+                <!-- Logo -->
+                    <h1 id="logo"><a class="go-home" href="#">MEMEX <span style="font-size:10pt">DASHBOARD</span></a></h1>
 
-				<!-- Nav -->
-					<nav id="nav">
-						<header>
-							<h2>Domain</h2>
-						</header>
-						<ul>
-							<!-- <li><a href="#">All Domains</a></li> -->
-                            {% for domain in domains.buckets %}
-							<li><a class="set-domain" data-key="{{domain.key}}" href="#">{{ domain.key|capfirst }} <span style='float:right'>({{ domain.doc_count|intcomma }})</span></a></li>
+                <!-- Nav -->
+                    <nav id="nav">
+                        <header>
+                            <h2>Domain</h2>
+                        </header>
+                        <ul>
+                            <!-- <li><a href="#">All Domains</a></li> -->
+                            {% for domain in domains.facet.buckets %}
+                            <li><a class="set-domain" data-key="{{domain.key}}" href="#">{{ domain.key|capfirst }} <span style='float:right'>({{ domain.doc_count|intcomma }})</span></a></li>
                             {% endfor %}
-						</ul>
-					</nav>
+                        </ul>
+                    </nav>
                     <div id="domain-sidebar"></div>
-			</div>
+            </div>
 
-		<!-- Scripts -->
-			<script src="static/assets/js/jquery.min.js"></script>
-			<script src="static/assets/js/skel.min.js"></script>
-			<script src="static/assets/js/util.js"></script>
-			<script src="static/assets/js/main.js"></script>
+        <!-- Scripts -->
+            <script src="static/assets/js/jquery.min.js"></script>
+            <script src="static/assets/js/skel.min.js"></script>
+            <script src="static/assets/js/util.js"></script>
+            <script src="static/assets/js/main.js"></script>
 
             <div id="context" style="display:none;"></div>
-	</body>
+    </body>
 </html>
