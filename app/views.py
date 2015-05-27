@@ -14,15 +14,6 @@ def index(request):
     response['domains'] = _facet("_type", size=0)
     return render(request, 'app/index.html', response)
 
-@csrf_exempt
-def query(request):
-    response = {}
-    if request.method == 'POST':
-        body = json.loads(request.body)
-        client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
-        response = client.search(index=settings.ELASTICSEARCH['index'], body=body)
-    return HttpResponse(json.dumps(response), 'application/json')
-
 def get(request, _type, _id):
     response = {}
     client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
@@ -65,10 +56,46 @@ def domain(request, _domain):
     if _format == 'json':
         return HttpResponse(json.dumps(response), 'application/json')
     return render(request, 'app/domain.html', response)
-    
+
+def search(request, _domain):
+    response = {}
+    query = request.GET.get('q', '')
+    docs = int(request.GET.get('d', 10))
+    offset = int(request.GET.get('o', 0))
+
+    response = _search(query, docs=docs, offset=offset)
+
+    response['has_prev'] = offset > 0
+    response['has_next'] = offset + docs < response['hits']['total']
+    first = offset + 1
+    last = offset + len(response['hits']['hits'])
+    response['pageinfo'] = { 'first': first, 'last': last, 'total': response['hits']['total'] }
+
+    _format = request.GET.get('format', '')
+    if _format == 'json':
+        return HttpResponse(json.dumps(response), 'application/json')
+    return render(request, 'app/search.html', response)
+  
 
 # TODO: Move helpers to their own modules
 
+
+def _search(phrase, domain=None, docs=0, offset=0):
+    client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
+    body = { 
+        "query": { "match_phrase": { "content": phrase } },
+        "partial_fields" : { "source" : { "exclude" : "content" } },
+        "size": docs, 
+        "from": offset,
+        "sort" : [ { "timestamp" : {"order" : "desc"} } ],
+    }
+    response = client.search(index=settings.ELASTICSEARCH['index'], doc_type=domain, body=body)
+    for doc in response['hits']['hits']:
+        doc['id'] = doc['_id']
+        del doc['_id']
+        doc['type'] = doc['_type']
+        del doc['_type']
+    return response
 
 def _facet(field, filter=None, domain=None, size=10, docs=0, offset=0):
     client = Elasticsearch(settings.ELASTICSEARCH['hosts'])

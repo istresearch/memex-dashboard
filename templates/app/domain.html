@@ -53,7 +53,13 @@
         <article class="box post">
             <h2>{{ domain|capfirst }}</h2>
         </article>
+        <section class="box search">
+            <form id="search" method="post" action="#">
+                <input type="text" class="text" name="search" placeholder="Search">
+            </form>
+        </section>
 
+        <div id="sites">
         <h2>Sites</h2>
         <ul class="hosts">
         {% for site in sites.facet.buckets %}
@@ -67,7 +73,9 @@
         {% endif  %}
         <li class="stretch"></li>
         </ul>
+        </div>
 
+        <div id="docs">
         {% if sites.docs %}
         <h2>Scrapes</h2>
         <p>
@@ -115,8 +123,6 @@
         <span class="center">{{pageinfo.first|intcomma}}-{{pageinfo.last|intcomma}} of {{pageinfo.total|intcomma}}</span>
         </p>
         {% endif %}
+        </div>
     </div>
 </div>
-
-<script id="scripts">
-</script>
