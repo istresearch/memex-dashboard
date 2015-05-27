@@ -48,5 +48,7 @@
         {% endif %}
         <span class="center">{{pageinfo.first|intcomma}}-{{pageinfo.last|intcomma}} of {{pageinfo.total|intcomma}}</span>
         </p>
+        {% else %}
+        <p>0 results found</p>
         {% endif %}
 </div>

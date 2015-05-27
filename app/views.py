@@ -62,8 +62,9 @@ def search(request, _domain):
     query = request.GET.get('q', '')
     docs = int(request.GET.get('d', 10))
     offset = int(request.GET.get('o', 0))
+    exact = int(request.GET.get('x', 0))
 
-    response = _search(query, docs=docs, offset=offset)
+    response = _search(query, exact=exact, docs=docs, offset=offset)
 
     response['has_prev'] = offset > 0
     response['has_next'] = offset + docs < response['hits']['total']
@@ -80,10 +81,11 @@ def search(request, _domain):
 # TODO: Move helpers to their own modules
 
 
-def _search(phrase, domain=None, docs=0, offset=0):
+def _search(query, exact=False, domain=None, docs=0, offset=0):
     client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
+    query_type = "match_phrase" if exact else "match"
     body = { 
-        "query": { "match_phrase": { "content": phrase } },
+        "query": { query_type: { "content": query} },
         "partial_fields" : { "source" : { "exclude" : "content" } },
         "size": docs, 
         "from": offset,

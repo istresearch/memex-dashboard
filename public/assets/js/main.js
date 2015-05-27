@@ -140,11 +140,12 @@
         });
 
         $("#content").on('submit', '#search', function() {
-            var query = $('#search input').val().replace(' ', '+');
+            var query = $('#search input[name="query"]').val().replace(' ', '+');
+            var exact = $('#search input[name="exact"]').prop('checked');
             app.page = 0;
             app.filter = query.length ? query : "";
             if (app.filter) {
-                app.url = "domain/" + app.domain + "/search?q=" + app.filter;
+                app.url = "domain/" + app.domain + "/search?x=" + (exact ? 1 : 0) + "&q=" + app.filter;
                 app.fragments = ["docs"];
                 app.load();
             } else {
