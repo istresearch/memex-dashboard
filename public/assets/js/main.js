@@ -140,7 +140,7 @@
         });
 
         $("#content").on('submit', '#search', function() {
-            var query = $('#search input[name="query"]').val().replace(' ', '+');
+            var query = $('#search input[name="query"]').val().replace(/\s+/g, '+');
             var exact = $('#search input[name="exact"]').prop('checked');
             app.page = 0;
             app.filter = query.length ? query : "";

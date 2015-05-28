@@ -4,14 +4,15 @@
 <div id="get">
     <div><span class="title">URL:</span> <a href="{{source.url}}" target="_blank">{{ source.url }}</a></div>
     <div><span class="title">Timestamp:</span> {{ source.timestamp|ts }}</div>
-    {% if source.images %}
+    {% if source.crawl_data.images %}
     <div class="images">
     <span class="title">Images:</span>
-    {% for image in source.images %}
+    {% for image in source.crawl_data.images %}
         <a href="{{image}}" target="_blank"><img src="{{image}}"></a>
     {% endfor %}
     </div>
     {% endif %}
+    <!--
     {% if source.videos %}
     <div class="videos">
     <span class="title">Videos:</span>
@@ -20,5 +21,6 @@
     {% endfor %}
     </div>
     {% endif %}
-    <div class="content"><span class="title">Content:</span> <pre>{{ source.content }}</pre></div>
+    -->
+    <div class="content"><span class="title">Content:</span> <pre>{{ source.crawl_data.content }}</pre></div>
 </div>

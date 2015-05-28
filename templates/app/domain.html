@@ -92,8 +92,6 @@
         <tr>
             <th>URL</th>
             <th>Timestamp</th>
-            <th>Images</th>
-            <th>Videos</th>
             <!--
             <th>Team</th>
             <th>Crawler</th>
@@ -102,11 +100,11 @@
         </tr>
         {% for doc in sites.docs %}
         <tr data-id="{{doc.id}}">
-            <td><a class="show-scrape" href="#" data-url="get/{{doc.type}}/{{doc.id}}" title="{{doc.fields.source.0.url}}">{{ doc.fields.source.0.url|truncatechars:72 }}</a></td>
+            <td><a class="show-scrape" href="#" data-url="get/{{doc.type}}/{{doc.id}}" title="{{doc.fields.source.0.url}}">{{ doc.fields.source.0.url|truncatechars:85 }}</a></td>
             <td>{{ doc.fields.source.0.timestamp|ts }}</td>
+            <!--
             <td class="center">{% if doc.fields.source.0.images %}{{ doc.fields.source.0.images|length }}{% else %} 0 {% endif %}</td>
             <td class="center">{% if doc.fields.source.0.videos %}{{ doc.fields.source.0.videos|length }}{% else %} 0 {% endif %}</td>
-            <!--
             <td>{{ doc.fields.source.0.team|upper }}</td>
             <td>{{ doc.fields.source.0.crawler|upper }}</td>
             -->
