@@ -146,7 +146,7 @@
             app.filter = query.length ? query : "";
             if (app.filter) {
                 app.url = "domain/" + app.domain + "/search?x=" + (exact ? 1 : 0) + "&q=" + app.filter;
-                app.fragments = ["docs"];
+                app.fragments = ["docs", "sites"];
                 app.load();
             } else {
                 app.url = "domain/" + app.domain + "?f=" + app.filter;
