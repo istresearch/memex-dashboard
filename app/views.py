@@ -85,8 +85,8 @@ def _search(query, exact=False, domain=None, docs=0, offset=0):
     client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
     query_type = "match_phrase" if exact else "match"
     body = { 
-        "query": { query_type: { "content": query} },
-        "partial_fields" : { "source" : { "exclude" : "content" } },
+        "query": { query_type: { "raw_content": query} },
+        "partial_fields" : { "source" : { "exclude" : "raw_content,crawl_data" } },
         "size": docs, 
         "from": offset,
         "sort" : [ { "timestamp" : {"order" : "desc"} } ],
@@ -104,7 +104,7 @@ def _facet(field, filter=None, domain=None, size=10, docs=0, offset=0):
     body = { 
         "filter": { },
         "aggs" : { "outer" : { "filter": { }, "aggs": { "_agg": { "terms" : { "field" : field, "size": size } } } } },
-        "partial_fields" : { "source" : { "exclude" : "content" } },
+        "partial_fields" : { "source" : { "exclude" : "raw_content,crawl_data" } },
         "size": docs, 
         "from": offset,
         "sort" : [ { "timestamp" : {"order" : "desc"} } ],
