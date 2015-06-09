@@ -9,121 +9,126 @@ from django.contrib.sites.shortcuts import get_current_site
 import settings
 
 def index(request):
-    response = { 'site': get_current_site(request), 'domains': [] }
+    response = { 'site': get_current_site(request).name, 'domains': [] }
     client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
-    response['domains'] = _facet("_type", size=0)
+
+    response['domains'] = _facet(client, '_type')
+
+    _format = request.GET.get('format', '')
+    if _format == 'json':
+        return HttpResponse(json.dumps(response), 'application/json')
     return render(request, 'app/index.html', response)
 
 def get(request, _type, _id):
-    response = {}
+    response = { 'site': get_current_site(request).name, 'domains': [] }
     client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
-    response = client.get(index=settings.ELASTICSEARCH['index'], doc_type=_type, id=_id)
-    response["id"] = response["_id"]
-    del response["_id"]
-    response["type"] = response["_type"]
-    del response["_type"]
-    response["source"] = response["_source"]
-    del response["_source"]
+
+    response['domains'] = _facet(client, '_type')
+    
+    response['doc'] = client.get(index=settings.ELASTICSEARCH['index'], doc_type=_type, id=_id)
+    response['doc']['id'] = response['doc'].pop('_id')
+    response['doc']['type'] = response['doc'].pop('_type')
+    response['doc']['source'] = response['doc'].pop('_source')
+    response['doc']['index'] = response['doc'].pop('_index')
+    response['doc']['version'] = response['doc'].pop('_version')
+    
     _format = request.GET.get('format', '')
     if _format == 'json':
         return HttpResponse(json.dumps(response), 'application/json')
     return render(request, 'app/get.html', response)
 
-def domain(request, _domain):
-    response = {}
-    _filter = { }
-    fa = request.GET.get('f', '')
-    if len(fa):
-        for fb in fa.split(','):
-            fc = fb.split(':')
-            _filter[fc[0]] = fc[1]
-    if not _filter:
-        _filter = None
-    docs = int(request.GET.get('d', 10))
-    offset = int(request.GET.get('o', 0))
-    response['domains'] = _facet("_type", size=0)
-    response['domain'] = _domain
-    response['filter'] = _filter
-    response['teams'] = _facet("team", filter=_filter, domain=_domain)
-    response['crawlers'] = _facet("crawler", filter=_filter, domain=_domain)
-    response['sites'] = _facet("url.domain", filter=_filter, domain=_domain, size=0, docs=docs, offset=offset)
-    response['has_prev'] = offset > 0
-    response['has_next'] = offset + docs < response['sites']['doc_count']
-    first = offset + 1
-    last = offset + len(response['sites']['docs'])
-    response['pageinfo'] = { 'first': first, 'last': last, 'total': response['sites']['doc_count'] }
-    _format = request.GET.get('format', '')
-    if _format == 'json':
-        return HttpResponse(json.dumps(response), 'application/json')
-    return render(request, 'app/domain.html', response)
+@csrf_exempt
+def search(request):
+    response = { 'site': get_current_site(request).name, 'domains': [] }
+    client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
 
-def search(request, _domain):
-    response = {}
-    query = request.GET.get('q', '')
-    docs = int(request.GET.get('d', 10))
-    offset = int(request.GET.get('o', 0))
-    exact = int(request.GET.get('x', 0))
+    response['domains'] = _facet(client, '_type')
 
-    response = _search(query, exact=exact, docs=docs, offset=offset)
+    page = int(request.POST.get('page', 0))
+    pagesize = int(request.POST.get('pagesize', 10))
+    filter = {}
+    filter['domain'] = request.POST.get('domain')
+    filter['site'] = request.POST.get('site')
+    filter['team'] = request.POST.get('team')
+    filter['crawler'] = request.POST.get('crawler')
+    filter['phrase'] = request.POST.get('phrase')
+    filter['exact'] = request.POST.get('exact', False)
+    filter['docs'] = pagesize
+    filter['offset'] = page * pagesize
+    response['filter'] = filter
+    
+    response['teams'] = _facet(client, 'team', filter['domain'])
+    response['crawlers'] = _facet(client, 'crawler', filter['domain'])
 
-    response['has_prev'] = offset > 0
-    response['has_next'] = offset + docs < response['hits']['total']
-    first = offset + 1
-    last = offset + len(response['hits']['hits'])
-    response['pageinfo'] = { 'first': first, 'last': last, 'total': response['hits']['total'] }
-
+    _filter = {}
+    _and = [] 
+    if filter['team']:
+        _and.append({ 'term': {'team': filter['team'] } })
+    if filter['crawler']:
+        _and.append({ 'term': {'crawler': filter['crawler'] } })
+    if filter['site']:
+        _and.append({ 'term': {'url.domain': filter['site'] } })
+    if len(_and):
+        _filter = { 'and': _and }
+    
+    response['sites'] = _facet(client, 'url.domain', filter['domain'], _filter)
+    
+    _query = {}
+    if filter['phrase']:
+        query_type = 'match_phrase' if filter['exact'] else 'match'
+        _query = { query_type: { 'raw_content': filter['phrase'] } }
+    
+    docs = _search(client, filter['domain'], _query, _filter, filter['docs'], filter['offset'])
+    response['docs'] = docs['hits']['hits']
+    response['total'] = docs['hits']['total']
+    response['first'] = filter['offset'] + 1
+    response['last'] = filter['offset'] + filter['docs']
+    response['has_prev'] = filter['offset'] > 0
+    response['has_next'] = filter['offset'] + filter['docs'] < docs['hits']['total']    
+    
     _format = request.GET.get('format', '')
     if _format == 'json':
         return HttpResponse(json.dumps(response), 'application/json')
     return render(request, 'app/search.html', response)
-  
+    
+def _facet(client, field, type=None, filter={}, size=0):    
 
-# TODO: Move helpers to their own modules
-
-
-def _search(query, exact=False, domain=None, docs=0, offset=0):
-    client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
-    query_type = "match_phrase" if exact else "match"
-    body = { 
-        "query": { query_type: { "raw_content": query} },
-        "partial_fields" : { "source" : { "exclude" : "raw_content,crawl_data" } },
-        "size": docs, 
-        "from": offset,
-        "sort" : [ { "timestamp" : {"order" : "desc"} } ],
+    request = { 
+        'filter': filter,
+        'aggs' : { 'outer' : { 'filter': filter, 'aggs': { 'inner': { 'terms' : { 'field' : field, 'size': size } } } } },
+        'partial_fields' : { 'source' : { 'exclude' : 'raw_content,crawl_data' } },
     }
-    response = client.search(index=settings.ELASTICSEARCH['index'], doc_type=domain, body=body)
-    for doc in response['hits']['hits']:
-        doc['id'] = doc['_id']
-        del doc['_id']
-        doc['type'] = doc['_type']
-        del doc['_type']
-    return response
-
-def _facet(field, filter=None, domain=None, size=10, docs=0, offset=0):
-    client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
-    body = { 
-        "filter": { },
-        "aggs" : { "outer" : { "filter": { }, "aggs": { "_agg": { "terms" : { "field" : field, "size": size } } } } },
-        "partial_fields" : { "source" : { "exclude" : "raw_content,crawl_data" } },
-        "size": docs, 
-        "from": offset,
-        "sort" : [ { "timestamp" : {"order" : "desc"} } ],
-    }
-    if filter is not None:
-        body["filter"] = { "term": filter }
-        body["aggs"]["outer"]["filter"] = { "term": filter }
-    response = client.search(index=settings.ELASTICSEARCH['index'], doc_type=domain, body=body)
-    count = response["aggregations"]["outer"]["doc_count"]
-    for bucket in response["aggregations"]["outer"]["_agg"]["buckets"]:
-        count -= bucket["doc_count"]
-    count -= response["aggregations"]["outer"]["_agg"]["sum_other_doc_count"]
+    
+    data = client.search(index=settings.ELASTICSEARCH['index'], doc_type=type, body=request)
+    
+    count = data['aggregations']['outer']['doc_count']
+    for bucket in data['aggregations']['outer']['inner']['buckets']:
+        count -= bucket['doc_count']
+    count -= data['aggregations']['outer']['inner']['sum_other_doc_count']
     if count:
-        response["aggregations"]["outer"]["_agg"]["sum_none_doc_count"] = count 
-    docs = []
+        data['aggregations']['outer']['inner']['sum_none_doc_count'] = count 
+    
+    return data['aggregations']['outer']['inner']
+
+def _search(client, domain, query={}, filter={}, docs=0, offset=0):
+
+    body = { 
+        'partial_fields' : { 'source' : { 'exclude' : 'raw_content,crawl_data' } },
+        'size': docs, 
+        'from': offset,
+        'sort' : [ { 'timestamp' : {'order' : 'desc'} } ],
+    }   
+     
+    if len(filter):
+        body['filter'] = filter
+    if len(query):
+        body['query'] = query
+    
+    response = client.search(index=settings.ELASTICSEARCH['index'], doc_type=domain, body=body)
     for doc in response['hits']['hits']:
-        doc['id'] = doc['_id']
-        del doc['_id']
-        doc['type'] = doc['_type']
-        del doc['_type']
-        docs.append(doc)
-    return { "facet": response["aggregations"]["outer"]["_agg"], "docs": response["hits"]["hits"], "doc_count": response["hits"]["total"]}
+        doc['id'] = doc.pop('_id')
+        doc['type'] = doc.pop('_type')
+        doc['score'] = doc.pop('_score')
+        doc['index'] = doc.pop('_index')
+    return response
+    

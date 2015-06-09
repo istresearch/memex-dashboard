@@ -4,8 +4,9 @@
 	License: pixelarity.com/license
 */
 
+var app = { filter: { pagesize: 50 } };
+
 (function($) {
-    var app = { pagesize: 50 };
 
 	skel.breakpoints({
 		desktop: '(min-width: 737px)',
@@ -15,7 +16,7 @@
 		mobile: '(max-width: 736px)'
 	});
 
-	$(function() {
+	app.init = function() {
 
 		var	$window = $(window),
 			$body = $('body'),
@@ -39,99 +40,84 @@
 				);
 			});
 
-		// Off-Canvas Sidebar.
+        // Height hack.
+            var $sc = $('#sidebar, #content'), tid;
 
-			// Height hack.
-				var $sc = $('#sidebar, #content'), tid;
+            $window
+                .on('resize', function() {
+                    window.clearTimeout(tid);
+                    tid = window.setTimeout(function() {
+                        $sc.css('min-height', $document.height());
+                    }, 100);
+                })
+                .on('load', function() {
+                    $window.trigger('resize');
+                })
+                .trigger('resize');
 
-				$window
-					.on('resize', function() {
-						window.clearTimeout(tid);
-						tid = window.setTimeout(function() {
-							$sc.css('min-height', $document.height());
-						}, 100);
-					})
-					.on('load', function() {
-						$window.trigger('resize');
-					})
-					.trigger('resize');
+        // Title Bar.
+            $(
+                '<div id="titleBar">' +
+                    '<a href="#sidebar" class="toggle"></a>' +
+                    '<span class="title">' + $('#logo').html() + '</span>' +
+                '</div>'
+            )
+                .appendTo($body);
 
-			// Title Bar.
-				$(
-					'<div id="titleBar">' +
-						'<a href="#sidebar" class="toggle"></a>' +
-						'<span class="title">' + $('#logo').html() + '</span>' +
-					'</div>'
-				)
-					.appendTo($body);
+        // Sidebar
+            $('#sidebar')
+                .panel({
+                    delay: 500,
+                    hideOnClick: true,
+                    hideOnSwipe: true,
+                    resetScroll: true,
+                    resetForms: true,
+                    side: 'left',
+                    target: $body,
+                    visibleClass: 'sidebar-visible'
+                });
 
-			// Sidebar
-				$('#sidebar')
-					.panel({
-						delay: 500,
-						hideOnClick: true,
-						hideOnSwipe: true,
-						resetScroll: true,
-						resetForms: true,
-						side: 'left',
-						target: $body,
-						visibleClass: 'sidebar-visible'
-					});
+        // Fix: Remove navPanel transitions on WP<10 (poor/buggy performance).
+            if (skel.vars.os == 'wp' && skel.vars.osVersion < 10)
+                $('#titleBar, #sidebar, #main')
+                    .css('transition', 'none');
 
-			// Fix: Remove navPanel transitions on WP<10 (poor/buggy performance).
-				if (skel.vars.os == 'wp' && skel.vars.osVersion < 10)
-					$('#titleBar, #sidebar, #main')
-						.css('transition', 'none');
-
-	});
-
-    //helpers
-    app.load = function() {
-        $("#context").load(app.url + "&d=" + app.pagesize + "&o=" + app.pagesize * app.page, function() {
-            for (var ii = 0; ii < app.fragments.length; ii++) {
-                $("#" + app.fragments[ii]).html($("#" + app.fragments[ii], "#context").html());
-            }
-            $("#context").empty();
-        });
-    };
-
-    $(function() {
-        
         //event handlers
         $('#sidebar, #content').on("click", '.go-home', function() {
             window.location.reload();
         });
 
         $('#sidebar, #content').on("click", ".set-domain", function() {
-            app.domain = $(this).attr("data-key");
-            app.page = 0;
-            app.filter = "";
-            app.url = "domain/" + app.domain + "?d=" + app.pagesize;
-            app.fragments = ["content", "nav", "domain-sidebar"];
+            app.filter.page = 0;
+            app.filter.domain = $(this).attr("data-key");
             app.load();
         });
 
-        $('#sidebar, #content').on('click', '.filter-domain', function() {
-            app.page = 0;
-            app.filter = $(this).attr('data-field') + ":" + $(this).attr('data-key');
-            app.url = "domain/" + app.domain + "?f=" + app.filter;
-            app.fragments = ["content", "nav", "domain-sidebar"];
+        $('#sidebar, #content').on('click', '.add-filter', function() {
+            app.filter.page = 0;
+            app.filter[$(this).attr('data-field')] = $(this).attr('data-key');
             app.load();
         });
 
-        $('#content').on('click', '.load-next', function() {
-            app.page += 1;
+        $('#sidebar, #content').on('click', '.remove-filter', function() {
+            app.filter.page = 0;
+            app.filter[$(this).attr('data-field')] = $(this).attr('data-key');
             app.load();
-            return false;
         });
 
-        $('#content').on('click', '.load-prev', function() {
-            app.page -= 1;
+        $('#sidebar, #content').on('click', '.load-next', function() {
+            app.filter.page += 1;
             app.load();
             return false;
         });
 
-        $('#content').on('click', '.show-scrape', function() {
+        $('#sidebar, #content').on('click', '.load-prev', function() {
+            app.filter.page -= 1;
+            app.load();
+            return false;
+        });
+
+        $('#sidebar, #content').on('click', '.show-scrape', function() {
             var url = $(this).attr('data-url');
             $.get(url, function(data) {
                 $.featherlight(data);
@@ -139,7 +125,7 @@
             return false
         });
 
-        $("#content").on('submit', '#search', function() {
+        $('#sidebar, #content').on('submit', '#search', function() {
             var query = $('#search input[name="query"]').val().replace(/\s+/g, '+');
             var exact = $('#search input[name="exact"]').prop('checked');
             app.page = 0;
@@ -154,9 +140,19 @@
                 app.load();
             }
             return false;
+        }); 
+	};
+	
+    //helpers
+    app.load = function() {
+        $.post("./search/", app.filter, function(data) {
+            $("#wrap").html(data);   
+            app.init(); 
         });
-        
-        //init
+    };
+
+    $(function() {
+	    app.init();
         $("a.set-domain").first().click();
     });
 

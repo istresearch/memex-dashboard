@@ -1,10 +1,50 @@
 {% load humanize %}
 {% load timetags %}
 
-<div id="sites"></div>
+<!-- Content -->
+<div id="content">
+    <div class="inner">
+        <article class="box post">
+            <h2>{{ filter.domain|capfirst }}</h2>
+        </article>
+        <section class="box filters">
+            <ul>
+                {% if filter.team %}
+                    <li><i>Team:</i> <b>{{filter.team|upper}}</b> <a href="#" class="remove-filter" data-field="team">&times;</a></li>
+                {% endif %}
+                {% if filter.crawler %}
+                    <li><i>Crawler:</i> <b>{{filter.crawler|upper}}</b> <a href="#" class="remove-filter" data-field="crawler">&times;</a></li>
+                {% endif %}
+                {% if filter.site %}
+                    <li><i>Site:</i> <b>{{filter.site}}</b> <a href="#" class="remove-filter" data-field="site">&times;</a></li>
+                {% endif %}
+            </ul>
+        </section>
+        <section class="box search">
+            <form id="search" method="post" action="#">
+                <input type="text" class="text" name="query" placeholder="Search">
+                <div style="float:right">Exact Match <input type="checkbox" name="exact"></div>
+            </form>
+        </section>
 
-<div id="docs">
-        {% if hits.hits%}
+        <div id="sites">
+        <h2>Sites</h2>
+        <ul class="hosts">
+        {% for site in sites.buckets %}
+        <li><a class="add-filter" data-field="site" data-key="{{ site.key }}" href="#">{{ site.key }}</a> ({{ site.doc_count|intcomma }})</li>
+        {% endfor %}
+        {% if sites.sum_other_doc_count %}
+        <li><a class="add-filter" data-field="site" data-key="_other" href="#">Other</a> ({{ sites.sum_other_doc_count|intcomma }})</li>
+        {% endif  %}
+        {% if sites.sum_none_doc_count %}
+        <li><a class="add-filter" data-field="site" data-key="_none_" href="#">None</a> ({{ sites.sum_none_doc_count|intcomma }})</li>
+        {% endif  %}
+        <li class="stretch"></li>
+        </ul>
+        </div>
+
+        <div id="docs">
+        {% if docs %}
         <h2>Scrapes</h2>
         <p>
         {% if has_prev %}
@@ -13,7 +53,7 @@
         {% if has_next%}
         <a class="load-next" href="#">next &gt;</a>
         {% endif %}
-        <span class="center">{{pageinfo.first|intcomma}}-{{pageinfo.last|intcomma}} of {{pageinfo.total|intcomma}}</span>
+        <span class="center">{{first|intcomma}}-{{last|intcomma}} of {{total|intcomma}}</span>
         </p>
         <table class="docs">
         <tr>
@@ -27,9 +67,9 @@
             -->
             <th></th>
         </tr>
-        {% for doc in hits.hits %}
+        {% for doc in docs %}
         <tr data-id="{{doc.id}}">
-            <td><a class="show-scrape" href="#" data-url="get/{{doc.type}}/{{doc.id}}" title="{{doc.fields.source.0.url}}">{{ doc.fields.source.0.url|truncatechars:72 }}</a></td>
+            <td><a class="show-scrape" href="#" data-url="get/{{doc.type}}/{{doc.id}}" title="{{doc.fields.source.0.url}}">{{ doc.fields.source.0.url|truncatechars:85 }}</a></td>
             <td>{{ doc.fields.source.0.timestamp|ts }}</td>
             <!--
             <td class="center">{% if doc.fields.source.0.images %}{{ doc.fields.source.0.images|length }}{% else %} 0 {% endif %}</td>
@@ -48,9 +88,73 @@
         {% if has_next%}
         <a class="load-next" href="#">next &gt;</a>
         {% endif %}
-        <span class="center">{{pageinfo.first|intcomma}}-{{pageinfo.last|intcomma}} of {{pageinfo.total|intcomma}}</span>
+        <span class="center">{{first|intcomma}}-{{last|intcomma}} of {{total|intcomma}}</span>
         </p>
-        {% else %}
-        <p>0 results found</p>
         {% endif %}
+        </div>
+    </div>
 </div>
+
+<!-- Sidebar -->
+<div id="sidebar">
+
+    <!-- Logo -->
+    <h1 id="logo"><a class="go-home" href="#">MEMEX <div style="font-size:10pt">Crawl Dashboard</div></a></h1>
+
+    <!-- Nav -->
+    <nav id="nav">
+        <header>
+            <h2>Domain</h2>
+        </header>
+        <ul>
+            {% for domain in domains.buckets %}
+            <li>
+                <a class="set-domain" data-key="{{domain.key}}" href="#">
+                    {{ domain.key|capfirst }} 
+                    <span style='float:right'>({{ domain.doc_count|intcomma }})</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </nav>
+    <div id="domain-sidebar">
+        <nav>
+            <header>
+                <h2>{{ filter.domain|capfirst }} by Team</h2>
+            </header>
+            <ul>
+                {% for team in teams.buckets %}
+                <li><a class="add-filter" data-field="team" data-key="{{team.key}}" href="#">{{ team.key|upper }} <span style='float:right'>({{ team.doc_count|intcomma }})</span></a></li>
+                {% endfor %}
+            {% if teams.sum_other_doc_count %}
+                <li><a class="add-filter" data-field="team" data-key="_other_" href="#">Other <span style='float:right'>({{ teams.sum_other_doc_count|intcomma }})</span></a></li>
+            {% endif  %}
+            {% if teams.sum_none_doc_count %}
+                <li><a class="add-filter" data-field="team" data-key="_none_" href="#">None <span style='float:right'>({{ teams.sum_none_doc_count|intcomma }})</span></a></li>
+            {% endif  %}
+            </ul>
+        </nav>
+        <nav>
+            <header>
+                <h2>{{ filter.domain|capfirst }} by Crawler</h2>
+            </header>
+            <ul>
+                {% for crawler in crawlers.buckets %}
+                <li><a class="add-filter" data-field="crawler" data-key="{{crawler.key}}" href="#">{{ crawler.key|upper }} <span style='float:right'>({{ crawler.doc_count|intcomma }})</span></a></li>
+                {% endfor %}
+            {% if crawlers.sum_other_doc_count %}
+                <li><a class="add-filter" data-field="crawler" data-key="_other_" href="#">Other <span style='float:right'>({{ crawlers.sum_other_doc_count|intcomma }})</span></a></li>
+            {% endif  %}
+            {% if crawlers.sum_none_doc_count %}
+                <li><a class="add-filter" data-field="crawler" data-key="_none_" href="#">None <span style='float:right'>({{ crawlers.sum_none_doc_count|intcomma }})</span></a></li>
+            {% endif  %}
+            </ul>
+        </nav>
+    </div>
+</div>
+</div>
+
+
+
+
+

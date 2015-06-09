@@ -15,40 +15,45 @@
         <link rel="icon" type="image/png" href="static/favicon-16x16.png" sizes="16x16">
     </head>
     <body>
-
-        <!-- Content -->
+        <div id="wrap">
+        
+            <!-- Content -->
             <div id="content">
                 <div class="inner"></div>
             </div>
 
-        <!-- Sidebar -->
+            <!-- Sidebar -->
             <div id="sidebar">
 
                 <!-- Logo -->
-                    <h1 id="logo"><a class="go-home" href="#">MEMEX <div style="font-size:10pt">Crawl Dashboard</div></a></h1>
+                <h1 id="logo"><a class="go-home" href="#">MEMEX <div style="font-size:10pt">Crawl Dashboard</div></a></h1>
 
                 <!-- Nav -->
-                    <nav id="nav">
-                        <header>
-                            <h2>Domain</h2>
-                        </header>
-                        <ul>
-                            <!-- <li><a href="#">All Domains</a></li> -->
-                            {% for domain in domains.facet.buckets %}
-                            <li><a class="set-domain" data-key="{{domain.key}}" href="#">{{ domain.key|capfirst }} <span style='float:right'>({{ domain.doc_count|intcomma }})</span></a></li>
-                            {% endfor %}
-                        </ul>
-                    </nav>
-                    <div id="domain-sidebar"></div>
+                <nav id="nav">
+                    <header>
+                        <h2>Domain</h2>
+                    </header>
+                    <ul>
+                        {% for domain in domains.buckets %}
+                        <li>
+                            <a class="set-domain" data-key="{{domain.key}}" href="#">
+                                {{ domain.key|capfirst }} 
+                                <span style='float:right'>({{ domain.doc_count|intcomma }})</span>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+                <div id="domain-sidebar"></div>
             </div>
+        </div>
 
         <!-- Scripts -->
-            <script src="static/assets/js/jquery.min.js"></script>
-            <script src="static/assets/js/skel.min.js"></script>
-            <script src="static/assets/js/util.js"></script>
-            <script src="static/assets/js/featherlight.min.js"></script>
-            <script src="static/assets/js/main.js"></script>
+        <script src="static/assets/js/jquery.min.js"></script>
+        <script src="static/assets/js/skel.min.js"></script>
+        <script src="static/assets/js/util.js"></script>
+        <script src="static/assets/js/featherlight.min.js"></script>
+        <script src="static/assets/js/main.js"></script>
 
-            <div id="context" style="display:none;"></div>
     </body>
 </html>

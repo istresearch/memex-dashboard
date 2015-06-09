@@ -2,25 +2,25 @@
 {% load timetags %}
 
 <div id="get">
-    <div><span class="title">URL:</span> <a href="{{source.url}}" target="_blank">{{ source.url }}</a></div>
-    <div><span class="title">Timestamp:</span> {{ source.timestamp|ts }}</div>
-    {% if source.crawl_data.images %}
+    <div><span class="title">URL:</span> <a href="{{doc.source.url}}" target="_blank">{{ doc.source.url }}</a></div>
+    <div><span class="title">Timestamp:</span> {{ doc.source.timestamp|ts }}</div>
+    {% if doc.source.crawl_data.images %}
     <div class="images">
     <span class="title">Images:</span>
-    {% for image in source.crawl_data.images %}
+    {% for image in doc.source.crawl_data.images %}
         <a href="{{image}}" target="_blank"><img src="{{image}}"></a>
     {% endfor %}
     </div>
     {% endif %}
     <!--
-    {% if source.videos %}
+    {% if doc.source.videos %}
     <div class="videos">
     <span class="title">Videos:</span>
-    {% for video in source.videos %}
+    {% for video in doc.source.videos %}
         <p><a href="{{video}}" target="_blank">{{video}}</a></p>
     {% endfor %}
     </div>
     {% endif %}
     -->
-    <div class="content"><span class="title">Content:</span> <pre>{{ source.raw_content }}</pre></div>
+    <div class="content"><span class="title">Content:</span> <pre>{{ doc.source.raw_content }}</pre></div>
 </div>
