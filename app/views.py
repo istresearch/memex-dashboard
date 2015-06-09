@@ -51,8 +51,8 @@ def search(request):
     filter['site'] = request.POST.get('site')
     filter['team'] = request.POST.get('team')
     filter['crawler'] = request.POST.get('crawler')
-    filter['phrase'] = request.POST.get('phrase')
-    filter['exact'] = request.POST.get('exact', False)
+    filter['phrase'] = request.POST.get('phrase', '').replace('+', ' ')
+    filter['exact'] = 'true' if request.POST.get('exact') == 'true' else 'false'
     filter['docs'] = pagesize
     filter['offset'] = page * pagesize
     response['filter'] = filter
@@ -75,7 +75,7 @@ def search(request):
     
     _query = {}
     if filter['phrase']:
-        query_type = 'match_phrase' if filter['exact'] else 'match'
+        query_type = 'match_phrase' if filter['exact'] == 'true' else 'match'
         _query = { query_type: { 'raw_content': filter['phrase'] } }
     
     docs = _search(client, filter['domain'], _query, _filter, filter['docs'], filter['offset'])
@@ -112,19 +112,21 @@ def _facet(client, field, type=None, filter={}, size=0):
 
 def _search(client, domain, query={}, filter={}, docs=0, offset=0):
 
-    body = { 
+    data = { 
         'partial_fields' : { 'source' : { 'exclude' : 'raw_content,crawl_data' } },
         'size': docs, 
         'from': offset,
         'sort' : [ { 'timestamp' : {'order' : 'desc'} } ],
     }   
      
-    if len(filter):
-        body['filter'] = filter
-    if len(query):
-        body['query'] = query
+    if len(filter) and not len(query):
+        data['filter'] = filter
+    if len(query) and not len(filter):
+        data['query'] = query
+    if len(filter) and len(query):
+        data['query'] = { 'filtered': { 'query': query, 'filter': filter } }
     
-    response = client.search(index=settings.ELASTICSEARCH['index'], doc_type=domain, body=body)
+    response = client.search(index=settings.ELASTICSEARCH['index'], doc_type=domain, body=data)
     for doc in response['hits']['hits']:
         doc['id'] = doc.pop('_id')
         doc['type'] = doc.pop('_type')

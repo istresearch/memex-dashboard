@@ -1,13 +1,14 @@
 from django import template
 import time
+import urllib
+
 register = template.Library()
 
-def ts(timestamp):
+def timestamp(content):
     try:
-        ts = float(timestamp) / 1000.0
+        ts = float(content) / 1000.0
     except ValueError:
         return None
     return time.strftime("%m/%d/%y %H:%M:%S", time.gmtime(ts))
 
-register.filter(ts)
-
+register.filter(timestamp)

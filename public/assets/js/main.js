@@ -127,18 +127,10 @@ var app = { filter: { pagesize: 50 } };
 
         $('#sidebar, #content').on('submit', '#search', function() {
             var query = $('#search input[name="query"]').val().replace(/\s+/g, '+');
-            var exact = $('#search input[name="exact"]').prop('checked');
-            app.page = 0;
-            app.filter = query.length ? query : "";
-            if (app.filter) {
-                app.url = "domain/" + app.domain + "/search?x=" + (exact ? 1 : 0) + "&q=" + app.filter;
-                app.fragments = ["docs", "sites"];
-                app.load();
-            } else {
-                app.url = "domain/" + app.domain + "?f=" + app.filter;
-                app.fragments = ["content", "nav", "domain-sidebar"];
-                app.load();
-            }
+            app.filter.page = 0;
+            app.filter.phrase = query.length ? query : "";
+            app.filter.exact = $('#search input[name="exact"]').prop('checked');
+            app.load();
             return false;
         }); 
 	};

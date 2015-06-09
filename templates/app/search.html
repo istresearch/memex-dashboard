@@ -1,5 +1,5 @@
 {% load humanize %}
-{% load timetags %}
+{% load memexfilters %}
 
 <!-- Content -->
 <div id="content">
@@ -18,12 +18,19 @@
                 {% if filter.site %}
                     <li><i>Site:</i> <b>{{filter.site}}</b> <a href="#" class="remove-filter" data-field="site">&times;</a></li>
                 {% endif %}
+                {% if filter.phrase %}
+                    {% if filter.exact == 'true' %}
+                    <li><i>Phrase:</i> <b>"{{filter.phrase}}"</b> <a href="#" class="remove-filter" data-field="phrase">&times;</a></li>
+                    {% else %}
+                    <li><i>Keywords:</i> <b>{{filter.phrase}}</b> <a href="#" class="remove-filter" data-field="phrase">&times;</a></li>
+                    {% endif %}
+                {% endif %}
             </ul>
         </section>
         <section class="box search">
             <form id="search" method="post" action="#">
-                <input type="text" class="text" name="query" placeholder="Search">
-                <div style="float:right">Exact Match <input type="checkbox" name="exact"></div>
+                <input type="text" class="text" name="query" placeholder="Search" value="{{filter.phrase}}">
+                <div style="float:right">Exact Match <input type="checkbox" name="exact" {% if filter.exact == 'true' %}checked{% endif %}></div>
             </form>
         </section>
 
@@ -70,13 +77,8 @@
         {% for doc in docs %}
         <tr data-id="{{doc.id}}">
             <td><a class="show-scrape" href="#" data-url="get/{{doc.type}}/{{doc.id}}" title="{{doc.fields.source.0.url}}">{{ doc.fields.source.0.url|truncatechars:85 }}</a></td>
-            <td>{{ doc.fields.source.0.timestamp|ts }}</td>
-            <!--
-            <td class="center">{% if doc.fields.source.0.images %}{{ doc.fields.source.0.images|length }}{% else %} 0 {% endif %}</td>
-            <td class="center">{% if doc.fields.source.0.videos %}{{ doc.fields.source.0.videos|length }}{% else %} 0 {% endif %}</td>
-            <td>{{ doc.fields.source.0.team|upper }}</td>
-            <td>{{ doc.fields.source.0.crawler|upper }}</td>
-            -->
+            <td>{{ doc.fields.source.0.timestamp|timestamp }}</td>
+
             <td><a href="{{doc.fields.source.0.url}}" target="_blank">visit</a></td>
         </tr>
         {% endfor %}

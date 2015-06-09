@@ -1,9 +1,9 @@
 {% load humanize %}
-{% load timetags %}
+{% load memexfilters %}
 
 <div id="get">
     <div><span class="title">URL:</span> <a href="{{doc.source.url}}" target="_blank">{{ doc.source.url }}</a></div>
-    <div><span class="title">Timestamp:</span> {{ doc.source.timestamp|ts }}</div>
+    <div><span class="title">Timestamp:</span> {{ doc.source.timestamp|timestamp }}</div>
     {% if doc.source.crawl_data.images %}
     <div class="images">
     <span class="title">Images:</span>
