@@ -91,18 +91,21 @@ var app = { filter: { pagesize: 50 } };
             app.filter.page = 0;
             app.filter.domain = $(this).attr("data-key");
             app.load();
+            return false;
         });
 
         $('#sidebar, #content').on('click', '.add-filter', function() {
             app.filter.page = 0;
             app.filter[$(this).attr('data-field')] = $(this).attr('data-key');
             app.load();
+            return false;
         });
 
         $('#sidebar, #content').on('click', '.remove-filter', function() {
             app.filter.page = 0;
             app.filter[$(this).attr('data-field')] = $(this).attr('data-key');
             app.load();
+            return false;
         });
 
         $('#sidebar, #content').on('click', '.load-next', function() {
@@ -118,7 +121,7 @@ var app = { filter: { pagesize: 50 } };
         });
 
         $('#sidebar, #content').on('click', '.show-scrape', function() {
-            var url = $(this).attr('data-url');
+            var url = $(this).attr('href');
             $.get(url, function(data) {
                 $.featherlight(data);
             });
