@@ -1,5 +1,7 @@
 import json
 
+from urllib2 import urlparse
+from bs4 import BeautifulSoup as bs
 from elasticsearch import Elasticsearch 
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
@@ -25,13 +27,27 @@ def get(request, _type, _id):
 
     response['domains'] = _facet(client, '_type')
     
-    response['doc'] = client.get(index=settings.ELASTICSEARCH['index'], doc_type=_type, id=_id)
-    response['doc']['id'] = response['doc'].pop('_id')
-    response['doc']['type'] = response['doc'].pop('_type')
-    response['doc']['source'] = response['doc'].pop('_source')
-    response['doc']['index'] = response['doc'].pop('_index')
-    response['doc']['version'] = response['doc'].pop('_version')
-    
+    doc = client.get(index=settings.ELASTICSEARCH['index'], doc_type=_type, id=_id)
+    doc['id'] = doc.pop('_id')
+    doc['type'] = doc.pop('_type')
+    doc['source'] = doc.pop('_source')
+    doc['index'] = doc.pop('_index')
+    doc['version'] = doc.pop('_version')
+
+    #try:
+    url = doc['source']['url']
+    if doc['source']['raw_content']:
+            soup = bs(doc['source']['raw_content'], 'html.parser')
+            images = soup.find_all('img')
+            imglist = []
+            for image in images:
+                imglist.append(urlparse.urljoin(url, image.get('src')))
+            doc['source']['crawl_data']['images'] = imglist
+    #except:
+    #    pass
+
+    response['doc'] = doc
+
     _format = request.GET.get('format', '')
     if _format == 'json':
         return HttpResponse(json.dumps(response), 'application/json')
