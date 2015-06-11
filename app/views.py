@@ -41,8 +41,15 @@ def get(request, _type, _id):
             images = soup.find_all('img')
             imglist = []
             for image in images:
-                imglist.append(urlparse.urljoin(url, image.get('src')))
-            doc['source']['crawl_data']['images'] = imglist
+                try:
+                    imglist.append(urlparse.urljoin(url, image.get('src')))
+                except:
+                    imglist.append(urlparse.urljoin(url[0], image.get('src')))
+            try:
+                doc['source']['crawl_data']['images'] = imglist
+            except:
+                doc['source']['crawl_data'] = {}
+                doc['source']['crawl_data']['images'] = imglist
     #except:
     #    pass
 
