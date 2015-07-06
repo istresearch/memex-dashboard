@@ -1,0 +1,17 @@
+- Fix HG urls
+- Dedupe images
+- Offer text view
+- Remove "None/Other" links
+
+- Kibana
+- schema validation and error reporting
+- time filtering
+
+
+
+
+task reporting:
+- Sites
+- Keywords
+
+given a list of N, generate a report 
