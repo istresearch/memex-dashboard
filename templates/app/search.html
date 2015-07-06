@@ -147,6 +147,21 @@
                 {% endfor %}
             </ul>
         </nav>
+        <nav>
+            <header>
+                <h2>{{ filter.domain|capfirst }} by Date</h2>
+            </header>
+            <ul>
+                {% for span in dates.buckets reversed %}
+                <li>
+                    <a title="{{ span.key|capfirst }}" class="add-filter" data-field="timestamp" data-key="{{span.key}}" href="#">
+                        <span>{{ span.key|capfirst }}</span> 
+                        <span style='float:right'>({{ span.doc_count|intcomma }})</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </nav>
     </div>
 </div>
 </div>

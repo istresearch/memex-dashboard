@@ -100,6 +100,7 @@ def search(request):
         _filter = { 'and': _and }
     
     response['sites'] = _facet(client, 'url.domain', filter['domain'], _filter)
+    response['dates'] = _ranges(client, filter['domain'], _filter)
     
     _query = {}
     if filter['phrase']:
@@ -118,6 +119,29 @@ def search(request):
     if _format == 'json':
         return HttpResponse(json.dumps(response), 'application/json')
     return render(request, 'app/search.html', response)
+
+def _ranges(client, type=None, filter={}):
+
+    request = { 
+        'filter': filter,
+        'aggs' : { 'outer' : { 'filter': filter, 'aggs': { 'inner': { 
+                'date_range': {
+                    'field': 'timestamp',
+                    'ranges': [
+                        { 'from': 'now-1h', 'key':'hour' }, 
+                        { 'from': 'now-1d', 'key':'day' }, 
+                        { 'from': 'now-1w', 'key':'week' }, 
+                        { 'from': 'now-1M', 'key':'month' }, 
+                        { 'from': 'now-1y', 'key':'year' } 
+                    ]
+                }
+        } } } },
+        'size': 0
+    }
+    
+    data = client.search(index=settings.ELASTICSEARCH['index'], doc_type=type, body=request)
+    
+    return data['aggregations']['outer']['inner']
     
 def _facet(client, field, type=None, filter={}, size=0):    
 
