@@ -35,7 +35,7 @@
         </section>
 
         <div id="sites">
-        <h2>Sites ({{ sites.buckets|length|intcomma }})</h2>
+        <h2><a href="#" class="showSites">Sites ({{ sites.buckets|length|intcomma }})</a></h2>
         <ul class="hosts">
         {% for site in sites.buckets %}
         <li><a class="add-filter" data-field="site" data-key="{{ site.key }}" href="#">{{ site.key }}</a> ({{ site.doc_count|intcomma }})</li>

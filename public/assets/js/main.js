@@ -4,7 +4,7 @@
 	License: pixelarity.com/license
 */
 
-var app = { filter: { pagesize: 50 } };
+var app = { filter: { pagesize: 50 }, showSites: true };
 
 (function($) {
 
@@ -136,6 +136,22 @@ var app = { filter: { pagesize: 50 } };
             app.load();
             return false;
         }); 
+
+        $('#sidebar, #content').on('click', '.showSites', function() {
+            app.showSites = !app.showSites;
+            if (app.showSites) {
+                $('.hosts').show();
+            } else {
+                $('.hosts').hide();
+            }
+            return false;
+        });
+
+        if (app.showSites) {
+            $('.hosts').show();
+        } else {
+            $('.hosts').hide();
+        }
 	};
 	
     //helpers
