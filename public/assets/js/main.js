@@ -124,6 +124,9 @@ var app = { filter: { pagesize: 50 }, showSites: true };
             var url = $(this).attr('href');
             $.get(url, function(data) {
                 $.featherlight(data);
+                $("#get").on('click', 'a.toggle', function() {
+                    $(this).closest('div').find('pre').toggle();
+                });
             });
             return false
         });

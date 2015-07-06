@@ -35,6 +35,7 @@ def get(request, _type, _id):
     doc['version'] = doc.pop('_version')
 
     #try:
+    '''
     url = doc['source']['url']
     if doc['source']['raw_content']:
             soup = bs(doc['source']['raw_content'], 'html.parser')
@@ -50,6 +51,10 @@ def get(request, _type, _id):
             except:
                 doc['source']['crawl_data'] = {}
                 doc['source']['crawl_data']['images'] = imglist
+    '''
+    crawl_data = doc['source'].get('crawl_data')
+    if crawl_data:
+        doc['crawl_data_json'] = json.dumps(crawl_data, indent=4)
     #except:
     #    pass
 

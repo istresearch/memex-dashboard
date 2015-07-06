@@ -36,8 +36,8 @@
                     <ul>
                         {% for domain in domains.buckets %}
                         <li>
-                            <a class="set-domain" data-key="{{domain.key}}" href="#">
-                                {{ domain.key|capfirst }} 
+                            <a title="{{ domain.key|capfirst }}" class="set-domain" data-key="{{domain.key}}" href="#">
+                                <span>{{ domain.key|capfirst }}</span>
                                 <span style='float:right'>({{ domain.doc_count|intcomma }})</span>
                             </a>
                         </li>

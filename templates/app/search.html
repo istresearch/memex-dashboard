@@ -43,9 +43,6 @@
         {% if sites.sum_other_doc_count %}
         <li><a class="add-filter" data-field="site" data-key="_other" href="#">Other</a> ({{ sites.sum_other_doc_count|intcomma }})</li>
         {% endif  %}
-        {% if sites.sum_none_doc_count %}
-        <li><a class="add-filter" data-field="site" data-key="_none_" href="#">None</a> ({{ sites.sum_none_doc_count|intcomma }})</li>
-        {% endif  %}
         <li class="stretch"></li>
         </ul>
         </div>
@@ -111,8 +108,8 @@
         <ul>
             {% for domain in domains.buckets %}
             <li>
-                <a class="set-domain" data-key="{{domain.key}}" href="#">
-                    {{ domain.key|capfirst }} 
+                <a title="{{ domain.key|capfirst }}" class="set-domain" data-key="{{domain.key}}" href="#">
+                    <span>{{ domain.key|capfirst }}</span>
                     <span style='float:right'>({{ domain.doc_count|intcomma }})</span>
                 </a>
             </li>
@@ -126,14 +123,13 @@
             </header>
             <ul>
                 {% for team in teams.buckets %}
-                <li><a class="add-filter" data-field="team" data-key="{{team.key}}" href="#">{{ team.key|upper }} <span style='float:right'>({{ team.doc_count|intcomma }})</span></a></li>
+                <li>
+                    <a title="{{ team.key|upper }}" class="add-filter" data-field="team" data-key="{{team.key}}" href="#">
+                        <span>{{ team.key|upper }}</span> 
+                        <span style='float:right'>({{ team.doc_count|intcomma }})</span>
+                    </a>
+                </li>
                 {% endfor %}
-            {% if teams.sum_other_doc_count %}
-                <li><a class="add-filter" data-field="team" data-key="_other_" href="#">Other <span style='float:right'>({{ teams.sum_other_doc_count|intcomma }})</span></a></li>
-            {% endif  %}
-            {% if teams.sum_none_doc_count %}
-                <li><a class="add-filter" data-field="team" data-key="_none_" href="#">None <span style='float:right'>({{ teams.sum_none_doc_count|intcomma }})</span></a></li>
-            {% endif  %}
             </ul>
         </nav>
         <nav>
@@ -142,14 +138,13 @@
             </header>
             <ul>
                 {% for crawler in crawlers.buckets %}
-                <li><a class="add-filter" data-field="crawler" data-key="{{crawler.key}}" href="#">{{ crawler.key|upper }} <span style='float:right'>({{ crawler.doc_count|intcomma }})</span></a></li>
+                <li>
+                    <a title="{{ crawler.key|upper }}" class="add-filter" data-field="crawler" data-key="{{crawler.key}}" href="#">
+                        <span>{{ crawler.key|upper }}</span> 
+                        <span style='float:right'>({{ crawler.doc_count|intcomma }})</span>
+                    </a>
+                </li>
                 {% endfor %}
-            {% if crawlers.sum_other_doc_count %}
-                <li><a class="add-filter" data-field="crawler" data-key="_other_" href="#">Other <span style='float:right'>({{ crawlers.sum_other_doc_count|intcomma }})</span></a></li>
-            {% endif  %}
-            {% if crawlers.sum_none_doc_count %}
-                <li><a class="add-filter" data-field="crawler" data-key="_none_" href="#">None <span style='float:right'>({{ crawlers.sum_none_doc_count|intcomma }})</span></a></li>
-            {% endif  %}
             </ul>
         </nav>
     </div>

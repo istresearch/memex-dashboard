@@ -2965,3 +2965,5 @@ a { text-decoration: none; }
 #get > div { margin-bottom: 20px; }
 
 .filters li { display: inline-block; margin-right: 10px; }
+
+#sidebar li a span { display: inline-block; max-width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
