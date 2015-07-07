@@ -18,6 +18,9 @@
                 {% if filter.site %}
                     <li><i>Site:</i> <b>{{filter.site}}</b> <a href="#" class="remove-filter" data-field="site">&times;</a></li>
                 {% endif %}
+                {% if filter.timestamp%}
+                    <li><i>Since:</i> <b>Last 1 {{filter.timestamp|capfirst}}</b> <a href="#" class="remove-filter" data-field="timestamp">&times;</a></li>
+                {% endif %}
                 {% if filter.phrase %}
                     {% if filter.exact == 'true' %}
                     <li><i>Phrase:</i> <b>"{{filter.phrase}}"</b> <a href="#" class="remove-filter" data-field="phrase">&times;</a></li>
@@ -154,8 +157,8 @@
             <ul>
                 {% for span in dates.buckets reversed %}
                 <li>
-                    <a title="{{ span.key|capfirst }}" class="add-filter" data-field="timestamp" data-key="{{span.key}}" href="#">
-                        <span>{{ span.key|capfirst }}</span> 
+                    <a title="Last 1 {{ span.key|capfirst }}" class="add-filter" data-field="timestamp" data-key="{{span.key}}" href="#">
+                        <span>Last 1 {{ span.key|capfirst }}</span> 
                         <span style='float:right'>({{ span.doc_count|intcomma }})</span>
                     </a>
                 </li>

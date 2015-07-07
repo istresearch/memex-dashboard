@@ -10,6 +10,14 @@ from django.contrib.sites.shortcuts import get_current_site
 
 import settings
 
+DATE_RANGES = { 
+    'hour': 'now-1h', 
+    'day': 'now-1d', 
+    'week': 'now-1w', 
+    'month': 'now-1M', 
+    'year': 'now-1y' 
+}
+
 def index(request):
     response = { 'site': get_current_site(request).name, 'domains': [] }
     client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
@@ -79,6 +87,7 @@ def search(request):
     filter['site'] = request.POST.get('site')
     filter['team'] = request.POST.get('team')
     filter['crawler'] = request.POST.get('crawler')
+    filter['timestamp'] = request.POST.get('timestamp')
     filter['phrase'] = request.POST.get('phrase', '').replace('+', ' ')
     filter['exact'] = 'true' if request.POST.get('exact') == 'true' else 'false'
     filter['docs'] = pagesize
@@ -96,6 +105,8 @@ def search(request):
         _and.append({ 'term': {'crawler': filter['crawler'] } })
     if filter['site']:
         _and.append({ 'term': {'url.domain': filter['site'] } })
+    if filter['timestamp']:
+        _and.append({ 'range': {'timestamp': { 'gte': DATE_RANGES[filter['timestamp']] } } })
     if len(_and):
         _filter = { 'and': _and }
     
@@ -122,18 +133,16 @@ def search(request):
 
 def _ranges(client, type=None, filter={}):
 
+    ranges = []
+    for kk in DATE_RANGES:
+        ranges.append({'from': DATE_RANGES[kk], 'key':kk})
+
     request = { 
         'filter': filter,
         'aggs' : { 'outer' : { 'filter': filter, 'aggs': { 'inner': { 
                 'date_range': {
                     'field': 'timestamp',
-                    'ranges': [
-                        { 'from': 'now-1h', 'key':'hour' }, 
-                        { 'from': 'now-1d', 'key':'day' }, 
-                        { 'from': 'now-1w', 'key':'week' }, 
-                        { 'from': 'now-1M', 'key':'month' }, 
-                        { 'from': 'now-1y', 'key':'year' } 
-                    ]
+                    'ranges': ranges
                 }
         } } } },
         'size': 0
