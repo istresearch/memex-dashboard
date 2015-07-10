@@ -111,7 +111,7 @@ def search(request):
         _filter = { 'and': _and }
     
     response['sites'] = _facet(client, 'url.domain', filter['domain'], _filter)
-    response['dates'] = _ranges(client, filter['domain'], _filter)
+    response['dates'] = _ranges(client, filter['domain'])
     
     _query = {}
     if filter['phrase']:
@@ -122,7 +122,7 @@ def search(request):
     response['docs'] = docs['hits']['hits']
     response['total'] = docs['hits']['total']
     response['first'] = filter['offset'] + 1
-    response['last'] = filter['offset'] + filter['docs']
+    response['last'] = min(filter['offset'] + filter['docs'], docs['hits']['total'])
     response['has_prev'] = filter['offset'] > 0
     response['has_next'] = filter['offset'] + filter['docs'] < docs['hits']['total']    
     
@@ -131,15 +131,15 @@ def search(request):
         return HttpResponse(json.dumps(response), 'application/json')
     return render(request, 'app/search.html', response)
 
-def _ranges(client, type=None, filter={}):
+def _ranges(client, type=None):
 
     ranges = []
     for kk in DATE_RANGES:
         ranges.append({'from': DATE_RANGES[kk], 'key':kk})
 
     request = { 
-        'filter': filter,
-        'aggs' : { 'outer' : { 'filter': filter, 'aggs': { 'inner': { 
+        'filter': {},
+        'aggs' : { 'outer' : { 'filter': {}, 'aggs': { 'inner': { 
                 'date_range': {
                     'field': 'timestamp',
                     'ranges': ranges
