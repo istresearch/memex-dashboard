@@ -29,6 +29,38 @@ def index(request):
         return HttpResponse(json.dumps(response), 'application/json')
     return render(request, 'app/index.html', response)
 
+def analysis(request, _type):
+    response = { 'site': get_current_site(request).name, 'domains': [] }
+    client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
+    
+    response['domain'] = _type
+    response['domains'] = _facet(client, '_type')
+    response['keywords'] = KEYWORDS.get(_type, [])
+
+    _format = request.GET.get('format', '')
+    if _format == 'json':
+        return HttpResponse(json.dumps(response), 'application/json')
+    return render(request, 'app/analysis.html', response)
+
+def keyword(request, _type,):
+    client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
+
+    size = request.GET.get('size', 10)
+    keyword = request.GET.get('keyword', '')
+    data = _facet(client, 'url.domain', type=_type, filter={ "bool": { "must": { "query": { "match_phrase": { "raw_content": keyword } } } } }, size=size, filter_all=False)
+    response = {
+        'keyword': keyword,
+        'all': data['total'],
+        'matched': data['sum_other_doc_count'],
+        'sites': {},
+        'other': data['sum_other_doc_count'],
+    }
+    for bucket in data['buckets']:
+        response['sites'][bucket['key']] = bucket['doc_count']
+        response['matched'] += bucket['doc_count']
+
+    return HttpResponse(json.dumps(response), 'application/json')
+
 def get(request, _type, _id):
     response = { 'site': get_current_site(request).name, 'domains': [] }
     client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
@@ -152,16 +184,20 @@ def _ranges(client, type=None):
     
     return data['aggregations']['outer']['inner']
     
-def _facet(client, field, type=None, filter={}, size=0):    
+def _facet(client, field, type=None, filter={}, size=0, filter_all=True):    
 
     request = { 
-        'filter': filter,
+        'filter': {},
         'aggs' : { 'outer' : { 'filter': filter, 'aggs': { 'inner': { 'terms' : { 'field' : field, 'size': size } } } } },
         'partial_fields' : { 'source' : { 'exclude' : 'raw_content,crawl_data' } },
     }
+
+    if filter_all:
+        request['filter'] = filter
     
     data = client.search(index=settings.ELASTICSEARCH['index'], doc_type=type, body=request)
     
+    data['aggregations']['outer']['inner']['total'] = data['hits']['total']
     count = data['aggregations']['outer']['doc_count']
     for bucket in data['aggregations']['outer']['inner']['buckets']:
         count -= bucket['doc_count']
@@ -194,4 +230,58 @@ def _search(client, domain, query={}, filter={}, docs=0, offset=0):
         doc['score'] = doc.pop('_score')
         doc['index'] = doc.pop('_index')
     return response
-    
+
+KEYWORDS = {
+    'electronics': [
+        "Altera ",
+        "Microsemi",
+        "Actel",
+        "Motorola",
+        "Freescale",
+        "Philips",
+        "NXP",
+        "TI",
+        "Toshiba",
+        "Xilinx",
+        "AMD",
+        "Spansion",
+        "Analog Devices",
+        "Texas Instr",
+        "Austin",
+        "Xicor",
+        "Intersil",
+        "National",
+        "National ",
+        "TDK",
+        "Zilog",
+        "Agilent",
+        "Avago",
+        "Atmel",
+        "Burr Brown",
+        "Chips",
+        "Asiliant",
+        "Conexant",
+        "Cypress",
+        "Fairchild",
+        "Harris",
+        "Hitachi",
+        "ICS",
+        "IDT",
+        "Linear Tech",
+        "Linfinity",
+        "SG",
+        "Majestic",
+        "Malay",
+        "Maxim",
+        "Microlinear",
+        "Microsemi ",
+        "ON Semi",
+        "OKI",
+        "Lapis",
+        "Philips or Intersil",
+        "Seagate",
+        "Sharp",
+        "Siliconix",
+        "Sipex",
+    ]
+}

@@ -2443,7 +2443,7 @@
 						whatever you like (or remove it entirely).
 					*/
 
-					max-width: 1038px;
+					/* max-width: 1038px; */
 					padding-bottom: 6em;
 				}
 
@@ -2967,3 +2967,7 @@ a { text-decoration: none; }
 .filters li { display: inline-block; margin-right: 10px; }
 
 #sidebar li a span { display: inline-block; max-width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.chart { display: inline-block; margin-right: 20px; }
+.chart > div { width: 240px; height: 240px; display: inline-block; }
+.chart > div.sites { width: 320px; height: 240px; display: inline-block; }

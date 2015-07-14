@@ -1,10 +1,12 @@
 <!DOCTYPE HTML>
 {% load humanize %}
+{% load memexfilters %}
 <html>
     <head>
         <title>{{ site }}</title>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <base href="{% url 'app.views.index' %}">
         <!--[if lte IE 8]><script src="static/assets/css/ie/html5shiv.js"></script><![endif]-->
         <link rel="stylesheet" href="static/assets/css/featherlight.min.css" />
         <link rel="stylesheet" href="static/assets/css/main.css" />
@@ -14,12 +16,23 @@
         <link rel="icon" type="image/png" href="static/favicon-96x96.png" sizes="96x96">
         <link rel="icon" type="image/png" href="static/favicon-16x16.png" sizes="16x16">
     </head>
-    <body>
+    <body data-domain="{{ domain }}">
         <div id="wrap">
         
             <!-- Content -->
             <div id="content">
-                <div class="inner"></div>
+                <div class="inner">
+                    <article class="box post">
+                        <h2>{{ domain|capfirst }}</h2>
+                    </article>
+                    <p class="charts">
+                    </p>
+                    <p class="controls">
+                        <textarea class="terms-list" style="width: 100%; height: 200px;">{% for keyword in keywords %}{{keyword}}
+{% endfor %}</textarea>
+                        <button class="load-terms">Refresh</button>
+                    </p>
+                </div>
             </div>
 
             <!-- Sidebar -->
@@ -54,16 +67,13 @@
         <script src="static/assets/js/util.js"></script>
         <script src="static/assets/js/featherlight.min.js"></script>
         <script src="static/assets/js/main.js"></script>
+
+        <script src="//code.highcharts.com/highcharts.js"></script>
+        <script src="static/assets/js/analysis.js"></script>
         <script>
-            app.load = function() {
-                $.post("./search/", app.filter, function(data) {
-                    $("#wrap").html(data);
-                    app.mainPage();
-                });
-            };
             $(function() {
-                app.mainPage();
-                $("a.set-domain").first().click();
+                app.bootstrap();
+                $(".load-terms").click();
             });
         </script>
     </body>

@@ -16,7 +16,7 @@ var app = { filter: { pagesize: 50 }, showSites: true };
 		mobile: '(max-width: 736px)'
 	});
 
-	app.init = function() {
+	app.bootstrap = function() {
 
 		var	$window = $(window),
 			$body = $('body'),
@@ -81,6 +81,11 @@ var app = { filter: { pagesize: 50 }, showSites: true };
             if (skel.vars.os == 'wp' && skel.vars.osVersion < 10)
                 $('#titleBar, #sidebar, #main')
                     .css('transition', 'none');
+
+	};
+
+	app.mainPage = function() {
+        app.bootstrap();
 
         //event handlers
         $('#sidebar, #content').on("click", '.go-home', function() {
@@ -157,17 +162,4 @@ var app = { filter: { pagesize: 50 }, showSites: true };
         }
 	};
 	
-    //helpers
-    app.load = function() {
-        $.post("./search/", app.filter, function(data) {
-            $("#wrap").html(data);   
-            app.init(); 
-        });
-    };
-
-    $(function() {
-	    app.init();
-        $("a.set-domain").first().click();
-    });
-
 })(jQuery);

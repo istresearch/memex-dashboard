@@ -7,6 +7,9 @@
         <article class="box post">
             <h2>{{ filter.domain|capfirst }}</h2>
         </article>
+        <section class="box">
+            <p><a href="{{filter.domain}}/analysis">Keyword Analysis</a></p>
+        </section>
         <section class="box filters">
             <ul>
                 {% if filter.team %}
