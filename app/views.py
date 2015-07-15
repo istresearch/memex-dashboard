@@ -29,6 +29,20 @@ def index(request):
         return HttpResponse(json.dumps(response), 'application/json')
     return render(request, 'app/index.html', response)
 
+def domain(request, _type):
+    response = { 'site': get_current_site(request).name, 'domains': [] }
+    client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
+    response['domains'] = _facet(client, '_type')
+    response['teams'] = _facet(client, 'team', _type)
+    response['crawlers'] = _facet(client, 'crawler', _type)
+    response['dates'] = _ranges(client, _type)
+    response['domain'] = _type
+
+    _format = request.GET.get('format', '')
+    if _format == 'json':
+        return HttpResponse(json.dumps(response), 'application/json')
+    return render(request, 'app/domain.html', response)
+
 def analysis(request, _type):
     response = { 'site': get_current_site(request).name, 'domains': [] }
     client = Elasticsearch(settings.ELASTICSEARCH['hosts'])

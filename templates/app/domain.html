@@ -49,7 +49,7 @@
                     <ul>
                         {% for domain in domains.buckets %}
                         <li>
-                            <a title="{{ domain.key|capfirst }}" class="set-domain" data-key="{{domain.key}}" href="#">
+                            <a title="{{ domain.key|capfirst }}" href="{{ domain.key }}">
                                 <span>{{ domain.key|capfirst }}</span>
                                 <span style='float:right'>({{ domain.doc_count|intcomma }})</span>
                             </a>
@@ -57,7 +57,53 @@
                         {% endfor %}
                     </ul>
                 </nav>
-                <div id="domain-sidebar"></div>
+                <div id="domain-sidebar">
+                    <nav>
+                        <header>
+                            <h2>{{ filter.domain|capfirst }} by Team</h2>
+                        </header>
+                        <ul>
+                            {% for team in teams.buckets %}
+                            <li>
+                                <a title="{{ team.key|upper }}" class="add-filter" data-field="team" data-key="{{team.key}}" href="#">
+                                    <span>{{ team.key|upper }}</span> 
+                                    <span style='float:right'>({{ team.doc_count|intcomma }})</span>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </nav>
+                    <nav>
+                        <header>
+                            <h2>{{ filter.domain|capfirst }} by Crawler</h2>
+                        </header>
+                        <ul>
+                            {% for crawler in crawlers.buckets %}
+                            <li>
+                                <a title="{{ crawler.key|upper }}" class="add-filter" data-field="crawler" data-key="{{crawler.key}}" href="#">
+                                    <span>{{ crawler.key|upper }}</span> 
+                                    <span style='float:right'>({{ crawler.doc_count|intcomma }})</span>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </nav>
+                    <nav>
+                        <header>
+                            <h2>{{ filter.domain|capfirst }} by Date</h2>
+                        </header>
+                        <ul>
+                            {% for span in dates.buckets reversed %}
+                            <li>
+                                <a title="Last 1 {{ span.key|capfirst }}" class="add-filter" data-field="timestamp" data-key="{{span.key}}" href="#">
+                                    <span>Last 1 {{ span.key|capfirst }}</span> 
+                                    <span style='float:right'>({{ span.doc_count|intcomma }})</span>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </nav>
+                </div>
             </div>
         </div>
 
@@ -68,11 +114,9 @@
         <script src="static/assets/js/featherlight.min.js"></script>
         <script src="static/assets/js/highcharts.js"></script>
         <script src="static/assets/js/main.js"></script>
-        <script src="static/assets/js/analysis.js"></script>
         <script>
             $(function() {
                 app.bootstrap();
-                $(".load-terms").click();
             });
         </script>
     </body>

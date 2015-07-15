@@ -36,7 +36,7 @@
                     <ul>
                         {% for domain in domains.buckets %}
                         <li>
-                            <a title="{{ domain.key|capfirst }}" class="set-domain" data-key="{{domain.key}}" href="#">
+                            <a title="{{ domain.key|capfirst }}" href="{{domain.key}}">
                                 <span>{{ domain.key|capfirst }}</span>
                                 <span style='float:right'>({{ domain.doc_count|intcomma }})</span>
                             </a>
@@ -63,7 +63,7 @@
             };
             $(function() {
                 app.mainPage();
-                $("a.set-domain").first().click();
+                $("#nav a").first().click();
             });
         </script>
     </body>
