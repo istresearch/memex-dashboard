@@ -11,8 +11,23 @@ var app = app || {};
         $div.append("<div class='total'>");
         $div.append("<div class='sites'>");
         $div.append("<hr>");
-        $(".charts").append($div);
         $.get(app.domain + '/keyword', {keyword:term,size:count}, function(data) {
+            $div.attr('data-count', data.matched);
+            var inserted = false;
+            var charts = $(".charts .chart").get();
+            for (var ii = 0; ii < charts.length; ii++) {
+                $this = $(charts[ii]);
+                var count = $this.attr('data-count');
+                if (data.matched > count) {
+                    console.log(term + ": " + data.matched  + " is more than " + count + "; inserting before");
+                    $this.before($div);
+                    inserted = true;
+                    break;
+                }
+            }
+            if (!inserted) {
+                $(".charts").append($div);
+            }
             var matched = {
                 chart: {
                     type: 'pie'
@@ -86,7 +101,12 @@ var app = app || {};
             if (slug == 'terms-')
                 continue;
             if ($("#" + slug).length) {
-                $("#" + slug).removeClass('dirty');
+                if ($("#" + slug + " .highcharts-container").length) {
+                    $("#" + slug).removeClass('dirty');
+                } else {
+                    $("#" + slug).remove();
+                    loadCharts(term);
+                }
             } else {
                 loadCharts(term);
             }
