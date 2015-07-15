@@ -283,5 +283,26 @@ KEYWORDS = {
         "Sharp",
         "Siliconix",
         "Sipex",
+    ],
+    "weapons": [
+        "Glock Switch",
+        "Glock Chip",
+        "Chip ",
+        "Baffle",
+        "Baffle Stack",
+        "Monocore",
+        "Anarchist",
+        "Solvent Trap",
+        "LDC",
+        "Belt Fed",
+        "Crew served",
+        "Hip Whip",
+        "Polymer",
+        "CNC machine",
+        "Green tip",
+        "Black tip",
+        "FAL",
+        "Outer tube",
+        "trigger"
     ]
 }
