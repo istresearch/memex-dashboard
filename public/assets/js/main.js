@@ -4,7 +4,7 @@
 	License: pixelarity.com/license
 */
 
-var app = { filter: { pagesize: 50 }, showSites: true };
+var app = { filter: { page:0, pagesize: 50 }, showSites: true };
 
 (function($) {
 

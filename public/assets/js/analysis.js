@@ -33,7 +33,13 @@ var app = app || {};
                     type: 'pie'
                 },
                 title: {
-                    text: "<b>" + data.keyword + "</b> found in " + data.matched.toLocaleString() + " documents"
+                    text: "<b>" + data.keyword + "</b> found in <br><a class='load-keyword-all' data-keyword='" + data.keyword + "' href='#'>" + data.matched.toLocaleString() + "</a> documents",
+                    useHTML: true,
+                    align: "left"
+                },
+                subtitle: {
+                    text: "" + (Math.floor((data.matched / data.all) * 10000) / 100) + "% of all documents",
+                    align: "left"
                 },
                 legend: {
                     align: 'right',
@@ -58,14 +64,13 @@ var app = app || {};
                     type: 'pie'
                 },
                 title: {
-                    text: "Top sites with <b>" + data.keyword + "</b>"
+                    text: "Top sites for <b>" + data.keyword + "</b>:"
                 },
                 legend: {
                     align: 'right',
                     verticalAlign: 'top',
                     layout: 'vertical',
-                    x: 0,
-                    y: 100
+                    y: 20
                 },
                 plotOptions: {
                     pie: {
@@ -91,6 +96,10 @@ var app = app || {};
     var slugify = function(text) {
         return text.toString().toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-').replace(/^-+/, '').replace(/-+$/, '');
     };
+
+    $('body').on('click', '.load-keyword-all', function() {
+        return false; 
+    });
 
     $('body').on('click', '.load-terms', function() {
         var terms = $('.terms-list').val().split('\n');

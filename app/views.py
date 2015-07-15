@@ -18,9 +18,11 @@ DATE_RANGES = {
     'year': 'now-1y' 
 }
 
+ELASTICSEARCH_TIMEOUT = 60
+
 def index(request):
     response = { 'site': get_current_site(request).name, 'domains': [] }
-    client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
+    client = Elasticsearch(settings.ELASTICSEARCH['hosts'], timeout=ELASTICSEARCH_TIMEOUT)
 
     response['domains'] = _facet(client, '_type')
 
@@ -31,7 +33,7 @@ def index(request):
 
 def domain(request, _type):
     response = { 'site': get_current_site(request).name, 'domains': [] }
-    client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
+    client = Elasticsearch(settings.ELASTICSEARCH['hosts'], timeout=ELASTICSEARCH_TIMEOUT)
 
     response['domains'] = _facet(client, '_type')
 
@@ -88,7 +90,7 @@ def domain(request, _type):
 
 def analysis(request, _type):
     response = { 'site': get_current_site(request).name, 'domains': [] }
-    client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
+    client = Elasticsearch(settings.ELASTICSEARCH['hosts'], timeout=ELASTICSEARCH_TIMEOUT)
     
     response['domain'] = _type
     response['domains'] = _facet(client, '_type')
@@ -100,7 +102,7 @@ def analysis(request, _type):
     return render(request, 'app/analysis.html', response)
 
 def keyword(request, _type,):
-    client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
+    client = Elasticsearch(settings.ELASTICSEARCH['hosts'], timeout=ELASTICSEARCH_TIMEOUT)
 
     size = request.GET.get('size', 10)
     keyword = request.GET.get('keyword', '')
@@ -120,7 +122,7 @@ def keyword(request, _type,):
 
 def get(request, _type, _id):
     response = { 'site': get_current_site(request).name, 'domains': [] }
-    client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
+    client = Elasticsearch(settings.ELASTICSEARCH['hosts'], timeout=ELASTICSEARCH_TIMEOUT)
 
     response['domains'] = _facet(client, '_type')
     
@@ -165,7 +167,7 @@ def get(request, _type, _id):
 @csrf_exempt
 def search(request):
     response = { 'site': get_current_site(request).name, 'domains': [] }
-    client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
+    client = Elasticsearch(settings.ELASTICSEARCH['hosts'], timeout=ELASTICSEARCH_TIMEOUT)
 
     response['domains'] = _facet(client, '_type')
 
