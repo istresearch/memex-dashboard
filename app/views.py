@@ -32,12 +32,55 @@ def index(request):
 def domain(request, _type):
     response = { 'site': get_current_site(request).name, 'domains': [] }
     client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
-    response['domains'] = _facet(client, '_type')
-    response['teams'] = _facet(client, 'team', _type)
-    response['crawlers'] = _facet(client, 'crawler', _type)
-    response['dates'] = _ranges(client, _type)
-    response['domain'] = _type
 
+    response['domains'] = _facet(client, '_type')
+
+    page = int(request.POST.get('page', 0))
+    pagesize = int(request.POST.get('pagesize', 50))
+    filter = {}
+    filter['domain'] = _type
+    filter['site'] = request.POST.get('site')
+    filter['team'] = request.POST.get('team')
+    filter['crawler'] = request.POST.get('crawler')
+    filter['timestamp'] = request.POST.get('timestamp')
+    filter['phrase'] = request.POST.get('phrase', '').replace('+', ' ')
+    filter['exact'] = 'true' if request.POST.get('exact') == 'true' else 'false'
+    filter['docs'] = pagesize
+    filter['offset'] = page * pagesize
+    response['filter'] = filter
+    
+    response['teams'] = _facet(client, 'team', filter['domain'])
+    response['crawlers'] = _facet(client, 'crawler', filter['domain'])
+
+    _filter = {}
+    _and = [] 
+    if filter['team']:
+        _and.append({ 'term': {'team': filter['team'] } })
+    if filter['crawler']:
+        _and.append({ 'term': {'crawler': filter['crawler'] } })
+    if filter['site']:
+        _and.append({ 'term': {'url.domain': filter['site'] } })
+    if filter['timestamp']:
+        _and.append({ 'range': {'timestamp': { 'gte': DATE_RANGES[filter['timestamp']] } } })
+    if len(_and):
+        _filter = { 'and': _and }
+    
+    response['sites'] = _facet(client, 'url.domain', filter['domain'], _filter)
+    response['dates'] = _ranges(client, filter['domain'])
+    
+    _query = {}
+    if filter['phrase']:
+        query_type = 'match_phrase' if filter['exact'] == 'true' else 'match'
+        _query = { query_type: { 'raw_content': filter['phrase'] } }
+    
+    docs = _search(client, filter['domain'], _query, _filter, filter['docs'], filter['offset'])
+    response['docs'] = docs['hits']['hits']
+    response['total'] = docs['hits']['total']
+    response['first'] = filter['offset'] + 1
+    response['last'] = min(filter['offset'] + filter['docs'], docs['hits']['total'])
+    response['has_prev'] = filter['offset'] > 0
+    response['has_next'] = filter['offset'] + filter['docs'] < docs['hits']['total']    
+    
     _format = request.GET.get('format', '')
     if _format == 'json':
         return HttpResponse(json.dumps(response), 'application/json')

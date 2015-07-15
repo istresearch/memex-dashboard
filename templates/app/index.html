@@ -55,12 +55,6 @@
         <script src="static/assets/js/featherlight.min.js"></script>
         <script src="static/assets/js/main.js"></script>
         <script>
-            app.load = function() {
-                $.post("./search/", app.filter, function(data) {
-                    $("#wrap").html(data);
-                    app.mainPage();
-                });
-            };
             $(function() {
                 app.mainPage();
                 $("#nav a").first().click();

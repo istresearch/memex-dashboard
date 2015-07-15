@@ -25,6 +25,9 @@
                     <article class="box post">
                         <h2>{{ domain|capfirst }}</h2>
                     </article>
+                    <section class="box">
+                        <p><a href="{{filter.domain}}">&laquo; Back</a></p>
+                    </section>
                     <p class="controls">
                         <textarea class="terms-list" style="width: 100%; height: 120px;">{% for keyword in keywords %}{{keyword}}
 {% endfor %}</textarea>
@@ -49,7 +52,7 @@
                     <ul>
                         {% for domain in domains.buckets %}
                         <li>
-                            <a title="{{ domain.key|capfirst }}" class="set-domain" data-key="{{domain.key}}" href="#">
+                            <a title="{{ domain.key|capfirst }}" href="{{domain.key}}">
                                 <span>{{ domain.key|capfirst }}</span>
                                 <span style='float:right'>({{ domain.doc_count|intcomma }})</span>
                             </a>

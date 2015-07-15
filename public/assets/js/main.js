@@ -155,6 +155,13 @@ var app = { filter: { pagesize: 50 }, showSites: true };
             return false;
         });
 
+        app.load = function() {
+            $.post("./search/", app.filter, function(data) {
+                $("#wrap").html(data);
+                app.mainPage();
+            });
+        };
+
         if (app.showSites) {
             $('.hosts').show();
         } else {
