@@ -131,6 +131,7 @@ var app = { filter: { page:0, pagesize: 50 }, showSites: true };
                 $.featherlight(data);
                 $("#get").on('click', 'a.toggle', function() {
                     $(this).closest('div').find('pre').toggle();
+                    return false;
                 });
             });
             return false
