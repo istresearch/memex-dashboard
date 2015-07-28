@@ -1,4 +1,5 @@
 import json
+import csv
 
 from urllib2 import urlparse
 from bs4 import BeautifulSoup as bs
@@ -104,6 +105,19 @@ def get(request, _type, _id):
     if _format == 'json':
         return HttpResponse(json.dumps(response), 'application/json')
     return render(request, 'app/get.html', response)
+
+def report(request):
+    response = { 'site': get_current_site(request).name, 'domains': [] }
+    client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
+
+    response['domains'] = _facet(client, '_type')
+
+    with open('/home/scambria/domain_stats_report.csv', 'rb') as f:
+        reader = csv.reader(f)
+        records = list(reader)
+        response = {'records': records}
+
+    return render(request, 'app/report.html', response)
 
 @csrf_exempt
 def search(request):
