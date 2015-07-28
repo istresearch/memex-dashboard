@@ -1,0 +1,94 @@
+<!DOCTYPE HTML>
+{% load humanize %}
+{% load memexfilters %}
+<html>
+    <head>
+        <title>{{ site }}</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <base href="{% url 'app.views.index' %}">
+        <link rel="stylesheet" href="static/assets/css/main.css" />
+        <link rel="stylesheet" href="static/assets/jquery-tablesorter/themes/green/style.css" />        
+        <link rel="icon" type="image/png" href="static/favicon-32x32.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="static/favicon-96x96.png" sizes="96x96">
+        <link rel="icon" type="image/png" href="static/favicon-16x16.png" sizes="16x16">
+    </head>
+    <body>   
+        <div id="wrap">
+        
+            <!-- Content -->
+            <div id="content">
+                <div class="inner">
+                   <table id="statsReport" class="tablesorter"> 
+                    <thead> 
+                        <tr> 
+                            <th>Domain</th> 
+                            <th>Source Type</th> 
+                            <th>URL</th>                             
+                            <th>Currently Scraping</th> 
+                            <th>Currently Importing</th> 
+                            <th>Sections Scraping</th> 
+                            <th>Scraped Since</th>   
+                            <th>All Postings</th>   
+                            <th>Distinct Documents</th>   
+                            <th>Number of Images</th>
+                            <th>Last 30 Days</th>   
+                            <th>Last 60 Days</th>   
+                            <th>Last 90 Days</th>                                                           
+                        </tr> 
+                    </thead> 
+                    <tbody> 
+                    {% for row in records %}
+                        <tr>
+                            {% for field in row %}
+                                <td>{{ field }} </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}                    
+                    </tbody> 
+                    </table>                 
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div id="sidebar">
+
+                <!-- Logo -->
+                <h1 id="logo"><a class="go-home" href="#">MEMEX <div style="font-size:10pt">Crawl Dashboard</div></a></h1>
+
+                <!-- Nav -->
+                <nav id="nav">
+                    <header>
+                        <h2>Domain</h2>
+                    </header>
+                    <ul>
+                        {% for domain in domains.buckets %}
+                        <li>
+                            <a title="{{ domain.key|capfirst }}" class="set-domain" data-key="{{domain.key}}" href="#">
+                                <span>{{ domain.key|capfirst }}</span>
+                                <span style='float:right'>({{ domain.doc_count|intcomma }})</span>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+                <div id="domain-sidebar"></div>
+            </div>
+        </div>
+
+        <!-- Scripts -->
+        <script src="static/assets/jquery-tablesorter/jquery-latest.js"></script>
+        <script src="static/assets/jquery-tablesorter/jquery.tablesorter.js"></script>                
+        <script src="static/assets/js/skel.min.js"></script>
+        <script src="static/assets/js/util.js"></script>
+        <script src="static/assets/js/main.js"></script>
+
+        <script>
+            $(document).ready(function() 
+                { 
+                    $("#statsReport").tablesorter(); 
+                } 
+            );             
+        </script>
+    </body>
+</html>
