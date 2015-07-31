@@ -1,4 +1,5 @@
 import json
+import time
 
 from urllib2 import urlparse
 from bs4 import BeautifulSoup as bs
@@ -8,14 +9,16 @@ from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.sites.shortcuts import get_current_site
 
+now = time.time() * 1000
+
 import settings
 
 DATE_RANGES = { 
-    'hour': 'now-1h', 
-    'day': 'now-1d', 
-    'week': 'now-1w', 
-    'month': 'now-1M', 
-    'year': 'now-1y' 
+    'hour': now - 3600 * 1000, 
+    'day': now - 86400 * 1000, 
+    'week': now - 7 * 86400 * 1000,
+    'month': now - 30 * 86400 * 1000,
+    'year': now - 365 * 86400 * 1000,
 }
 
 ELASTICSEARCH_TIMEOUT = 60
