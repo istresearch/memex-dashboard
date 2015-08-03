@@ -93,5 +93,5 @@ TEMPLATE_DIRS = os.environ.get('TEMPLATE_DIRS', '/home/scambria/workspace/istres
 # ElasticSearch
 ELASTICSEARCH = {
     'hosts': os.environ.get('ES_HOSTS', 'https://memex:3vYAZ8bSztbxmznvhD4C@els.istresearch.com:9200').split(','),
-    'index': os.environ.get('ES_INDEX', 'memex-domains-dev')
+    'index': os.environ.get('ES_INDEX', 'memex-domains')
 }

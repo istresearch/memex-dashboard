@@ -31,7 +31,7 @@
                 <!-- Nav -->
                 <nav id="nav">               
                     <header>
-                        <h2>Domain</h2>
+                        <h2>Domain <a href="/report">(Stats)</a></h2>
                     </header>
                     <ul>
                         {% for domain in domains.buckets %}
@@ -43,7 +43,6 @@
                         </li>
                         {% endfor %}
                     </ul>             
-                    <p><a href="/report">CDR Stats Report</a></p> 
                 </nav>
                 <div id="domain-sidebar"></div>
             </div>

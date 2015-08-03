@@ -1,5 +1,8 @@
 import json
 import csv
+import os
+import time 
+import settings
 
 from urllib2 import urlparse
 from bs4 import BeautifulSoup as bs
@@ -8,16 +11,21 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.sites.shortcuts import get_current_site
+from os import listdir
+from os.path import isfile, join
+from dateutil import parser
 
-import settings
+now = time.time() * 1000
 
 DATE_RANGES = { 
-    'hour': 'now-1h', 
-    'day': 'now-1d', 
-    'week': 'now-1w', 
-    'month': 'now-1M', 
-    'year': 'now-1y' 
+    'hour': now - 3600 * 1000, 
+    'day': now - 86400 * 1000, 
+    'week': now - 7 * 86400 * 1000,
+    'month': now - 30 * 86400 * 1000,
+    'year': now - 365 * 86400 * 1000,
 }
+
+ELASTICSEARCH_TIMEOUT = 60
 
 def index(request):
     response = { 'site': get_current_site(request).name, 'domains': [] }
@@ -109,13 +117,58 @@ def get(request, _type, _id):
 def report(request):
     response = { 'site': get_current_site(request).name, 'domains': [] }
     client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
-
     response['domains'] = _facet(client, '_type')
 
-    with open('/home/scambria/domain_stats_report.csv', 'rb') as f:
+    _archiveRequest = request.GET.get('datetime', '')
+    _domain = request.GET.get('domain', '')
+
+    reportGenScript = '/home/scambria/workspace/istresearch/memex/memex/python/reports/domain-stats-report-gen.py'
+    reportName = 'domain_stats_report.csv'
+    reportDirectory = '/var/local/cdr-reports/'
+    reportLocation = reportDirectory + reportName
+
+    if _archiveRequest != '':
+        fileSuffix = ".csv"
+        if _domain != '':
+            reportDirectory += _domain + '/'
+            fileSuffix = "-" + _domain + ".csv"
+        files = [f[10: 27] for f in listdir(reportDirectory) if isfile(join(reportDirectory,f)) ]
+        if len(files) > 0:
+            _archiveRequest = time.strptime(_archiveRequest, '%Y-%m-%d_%I%p')
+            _archiveRequest = time.strftime('%Y-%m-%d_%H%M%S', _archiveRequest)
+            files.sort()
+            for f in files:
+                if _archiveRequest <= f:
+                    reportName = 'CDR-Stats-' + f + fileSuffix
+                    break
+            files.append(_archiveRequest)
+            reportLocation = reportDirectory + reportName
+            os.system("python " + reportGenScript + " " + reportLocation + " " + _domain)
+    elif _domain != '':
+        reportDirectory += _domain + '/'
+        if not os.path.exists(reportDirectory):
+            os.makedirs(reportDirectory)
+        reportName = 'CDR-Stats-' + time.strftime("%Y-%m-%d_%H%M%S") + "-" + _domain + ".csv"
+        reportLocation = reportDirectory + reportName
+        os.system("python " + reportGenScript + " " + reportLocation + " " + _domain)
+    else:
+        reportName = 'CDR-Stats-' + time.strftime("%Y-%m-%d_%H%M%S") + ".csv"
+        reportLocation = reportDirectory + reportName
+        os.system("python " + reportGenScript + " " + reportLocation)
+
+    response['domain'] = _domain
+    response['reportName'] = reportName
+
+    with open(reportLocation, 'rb') as f:
         reader = csv.reader(f)
         records = list(reader)
-        response = {'records': records}
+        #this expects the TOTALS record to be the last in the report
+        totals = records.pop()
+        response['totals'] = totals
+        #remove csv header row
+        records = records[1:]
+        response['records'] = records
+    f.close()
 
     return render(request, 'app/report.html', response)
 
