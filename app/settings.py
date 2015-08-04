@@ -88,10 +88,16 @@ USE_TZ = True
 
 STATIC_URL =  os.environ.get('STATIC_URL', '/static/')
 
-TEMPLATE_DIRS = os.environ.get('TEMPLATE_DIRS', '/home/scambria/workspace/istresearch/memex/memex-dashboard/templates').split(',')
+TEMPLATE_DIRS = os.environ.get('TEMPLATE_DIRS', '').split(',')
 
 # ElasticSearch
 ELASTICSEARCH = {
-    'hosts': os.environ.get('ES_HOSTS', 'https://memex:3vYAZ8bSztbxmznvhD4C@els.istresearch.com:9200').split(','),
-    'index': os.environ.get('ES_INDEX', 'memex-domains')
+    'hosts': os.environ.get('ES_HOSTS', 'localhost').split(','),
+    'index': os.environ.get('ES_INDEX', 'memex')
 }
+
+SCRIPTS_DIR = os.environ.get('SCRIPTS_DIR', 'scripts/')
+
+CRAWL_REPORT_NAME_DEFAULT = os.environ.get(CRAWL_REPORT_NAME_DEFAULT, 'domain_stats_report.csv')
+
+CRAWL_REPORT_DIRECTORY = os.environ.get('CRAWL_REPORT_DIRECTORY', '')
