@@ -122,16 +122,15 @@ def report(request):
     _archiveRequest = request.GET.get('datetime', '')
     _domain = request.GET.get('domain', '')
 
-    reportGenScript = '/home/scambria/workspace/istresearch/memex/memex/python/reports/domain-stats-report-gen.py'
-    reportName = 'domain_stats_report.csv'
-    reportDirectory = '/var/local/cdr-reports/'
+    reportGenScript = settings.SCRIPTS_FOLDER + 'domain-stats-report-gen.py'
+    reportName = settings.CRAWL_REPORT_NAME_DEFAULT
+    reportDirectory = settings.CRAWL_REPORT_DIRECTORY
     reportLocation = reportDirectory + reportName
-
+    fileSuffix = ".csv"
     if _archiveRequest != '':
-        fileSuffix = ".csv"
         if _domain != '':
             reportDirectory += _domain + '/'
-            fileSuffix = "-" + _domain + ".csv"
+            fileSuffix = "-" + _domain + fileSuffix
         files = [f[10: 27] for f in listdir(reportDirectory) if isfile(join(reportDirectory,f)) ]
         if len(files) > 0:
             _archiveRequest = time.strptime(_archiveRequest, '%Y-%m-%d_%I%p')
@@ -148,11 +147,11 @@ def report(request):
         reportDirectory += _domain + '/'
         if not os.path.exists(reportDirectory):
             os.makedirs(reportDirectory)
-        reportName = 'CDR-Stats-' + time.strftime("%Y-%m-%d_%H%M%S") + "-" + _domain + ".csv"
+        reportName = 'CDR-Stats-' + time.strftime("%Y-%m-%d_%H%M%S") + "-" + _domain + fileSuffix
         reportLocation = reportDirectory + reportName
         os.system("python " + reportGenScript + " " + reportLocation + " " + _domain)
     else:
-        reportName = 'CDR-Stats-' + time.strftime("%Y-%m-%d_%H%M%S") + ".csv"
+        reportName = 'CDR-Stats-' + time.strftime("%Y-%m-%d_%H%M%S") + fileSuffix
         reportLocation = reportDirectory + reportName
         os.system("python " + reportGenScript + " " + reportLocation)
 

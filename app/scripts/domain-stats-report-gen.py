@@ -12,7 +12,7 @@ now = time.time() * 1000
 
 log = logging.getLogger(__name__)
 
-outputFile = os.environ.get(CRAWL_REPORT_NAME_DEFAULT, 'domain_stats_report.csv')
+outputFile = os.environ.get('CRAWL_REPORT_NAME_DEFAULT', 'domain_stats_report.csv')
 domain = ''
 if len(sys.argv) > 1:
     outputFile = sys.argv[1]

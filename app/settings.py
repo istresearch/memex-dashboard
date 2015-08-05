@@ -98,6 +98,6 @@ ELASTICSEARCH = {
 
 SCRIPTS_DIR = os.environ.get('SCRIPTS_DIR', 'scripts/')
 
-CRAWL_REPORT_NAME_DEFAULT = os.environ.get(CRAWL_REPORT_NAME_DEFAULT, 'domain_stats_report.csv')
+CRAWL_REPORT_NAME_DEFAULT = os.environ.get('CRAWL_REPORT_NAME_DEFAULT', 'domain_stats_report.csv')
 
 CRAWL_REPORT_DIRECTORY = os.environ.get('CRAWL_REPORT_DIRECTORY', '')
