@@ -1,0 +1,254 @@
+<!DOCTYPE HTML>
+{% load humanize %}
+{% load memexfilters %}
+<html>
+    <head>
+        <title>{{ site }}</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <base href="{% url 'app.views.index' %}">
+        <link rel="stylesheet" href="static/assets/css/main.css" />
+        <link rel="stylesheet" href="static/assets/css/theme.jui.min.css" />
+        <link rel="stylesheet" href="static/assets/css/jquery.tablesorter.pager.min.css" />   
+        <link rel="stylesheet" href="static/assets/jquery-ui/jquery-ui.min.css">
+        <link rel="icon" type="image/png" href="static/favicon-32x32.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="static/favicon-96x96.png" sizes="96x96">
+        <link rel="icon" type="image/png" href="static/favicon-16x16.png" sizes="16x16">
+    </head>
+    <body>   
+        <div id="wrap">        
+            <!-- Content -->
+            <div id="content">
+                <div class="inner">
+                    <button id="retrieveButton">Load Archived Report</button>
+                    <button id="exportButton">Download</button>
+                    <span> {{ reportName }} </span>
+                    <div class="pager"> 
+                            <img src="static/assets/css/images/first.png" class="first"/> 
+                            <img src="static/assets/css/images/prev.png" class="prev"/> 
+                            <span class="pagedisplay"></span> <!-- this can be any element, including an input --> 
+                            <img src="static/assets/css/images/next.png" class="next"/> 
+                            <img src="static/assets/css/images/last.png" class="last"/> 
+                            <select class="pagesize" title="Select page size"> 
+                                <option selected="selected" value="10">10</option> 
+                                <option value="25">25</option> 
+                                <option value="50">50</option> 
+                                <option value="100">100</option> 
+                            </select>
+                            <select class="gotoPage" title="Select page number"></select>
+                    </div>
+
+                   <table id="statsReport" class="tablesorter"> 
+                    <thead> 
+                        <tr> 
+                            <th>Domain</th> 
+                            <th>Source Type</th> 
+                            <th>URL</th>                             
+                            <th>Currently Scraping ({{totals.3}})</th> 
+                            <th>Currently Importing ({{totals.4}})</th> 
+                            <th>Sections Scraping</th> 
+                            <th>Scraped Since</th>   
+                            <th>All Postings ({{totals.7}})</th>   
+                            <th>Distinct Documents ({{totals.8}})</th>   
+                            <th>Number of Images ({{totals.9}})</th>
+                            <th>Last 30 Days ({{totals.10}})</th>   
+                            <th>Last 60 Days ({{totals.11}})</th>   
+                            <th>Last 90 Days ({{totals.12}})</th>                                                           
+                        </tr> 
+                    </thead> 
+                    <tbody> 
+                    {% for row in records %}
+                        <tr>
+                            {% for field in row %}
+                                <td>{{ field }} </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}                    
+                    </tbody> 
+                    </table>         
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div id="sidebar">
+
+                <!-- Logo -->
+                <h1 id="logo"><a class="go-home" href="#">MEMEX <div style="font-size:10pt">Crawl Dashboard</div></a></h1>
+
+                <!-- Nav -->
+                <nav id="nav">
+                    <header>
+                        <h2>Domain</h2>
+                    </header>
+                    <ul>
+                        {% for domain in domains.buckets %}
+                        <li>
+                            <a title="{{ domain.key|capfirst }}" class="set-domain" data-key="{{domain.key}}" href="#">
+                                <span>{{ domain.key|capfirst }}</span>
+                                <span style='float:right'>({{ domain.doc_count|intcomma }})</span>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+                <div id="domain-sidebar"></div>
+            </div>
+        </div>
+
+        <div id="load-report-dialog-form" title="Load Archived Report">     
+          <p class="validateTips">Retrieve the first report generated <i>after</i> the date/time entered.</p>    
+          <form>
+            <fieldset>
+              <label for="date">Select Date & Time</label>
+              <div id="loadDate"/>
+              <select name="number" id="loadHour">
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                  <option>5</option>
+                  <option>6</option>
+                  <option>7</option>
+                  <option>8</option>
+                  <option>9</option>
+                  <option>10</option>              
+                  <option>11</option>              
+                  <option selected="selected">12</option>
+              </select>    
+              <select name="number" id="loadAMorPM">
+                  <option selected="selected">AM</option>              
+                  <option>PM</option>            
+              </select>                                  
+              <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+            </fieldset>
+          </form>
+        </div>
+
+        <!-- Scripts -->
+        <script src="static/assets/js/jquery.min.js"></script>
+        <script src="static/assets/js/skel.min.js"></script>
+        <script src="static/assets/js/util.js"></script>
+        <script src="static/assets/js/main.js"></script>        
+        <script src="static/assets/jquery-ui/jquery-ui.min.js"></script>
+        <script src="static/assets/js/jquery.tablesorter.min.js"></script> 
+        <script src="static/assets/js/jquery.tablesorter.widgets.min.js"></script>     
+        <script src="static/assets/js/jquery.tablesorter.pager.min.js"></script>             
+        <script src="static/assets/js/widget-filter-type-insideRange.min.js"></script>
+        <script src="static/assets/js/widget-output.min.js"></script>        
+        <script src="static/assets/js/widget-uitheme.min.js"></script>                
+        <script src="static/assets/js/parser-date-range.min.js"></script>        
+        <script>  
+
+            $(document).ready(function() { 
+                var dialog, form;
+
+                $(document).data("domain", '{{domain}}');
+
+                function loadReport() {
+                  var valid = true;
+                  if ( valid ) {
+                    console.log('loading report from ' + $("#loadDate").val() + " near " + $("#loadHour").val() + $("#loadAMorPM").val() );
+                    if ( $(document).data("domain") != '') {
+                        window.location = "/report?datetime=" + $("#loadDate").val() + "_" + $("#loadHour").val() + $("#loadAMorPM").val() + "&domain={{domain}}";
+                    }
+                    else {
+                       window.location = "/report?datetime=" + $("#loadDate").val() + "_" + $("#loadHour").val() + $("#loadAMorPM").val() ;                        
+                    }
+                  }
+                  return valid;
+                }
+
+                loadDialog = $( "#load-report-dialog-form" ).dialog({
+                  autoOpen: false,
+                  height: 670,
+                  width: 430,
+                  modal: true,
+                  buttons: {
+                    "Load Report": loadReport,
+                    Cancel: function() {
+                      loadDialog.dialog( "close" );
+                    }
+                  },
+                  close: function() {
+                    form[ 0 ].reset();
+                  }
+                });
+             
+                form = loadDialog.find( "form" ).on( "submit", function( event ) {
+                  event.preventDefault();
+                  loadReport();
+                });
+
+                $("#loadDate").datepicker({dateFormat: "yy-mm-dd"});
+
+                $( "#loadHour" )
+                  .selectmenu()
+                  .selectmenu( "menuWidget" )
+                    .addClass( "overflow" );
+
+                $( "#loadAMorPM" ).selectmenu();
+
+                $("#retrieveButton")
+                    .button()
+                    .click(function( event ) {
+                        loadDialog.dialog( "open" );
+                        event.preventDefault();
+                    });      
+
+                $("#exportButton")
+                    .button()
+                    .click(function( event ) {
+                        $("#statsReport").trigger('outputTable');
+                    });
+
+                $("#statsReport") 
+                    .tablesorter({
+                        widthFixed: true, 
+                        widgets: ['uitheme', 'zebra', 'filter', 'output'], 
+                        theme: 'jui',
+                        showProcessing: true,
+                        cancelSelection: true,
+                        sortMultiSortKey: "shiftKey",
+                        sortResetKey: 'ctrlKey',
+                        usNumberFormat: true,
+                        widgetOptions : {
+                          filter_reset : '.reset',
+                          filter_searchFiltered : false,
+                          output_separator     : ',',        
+                          output_headerRows    : true,       
+                          output_delivery      : 'd',        
+                          output_saveRows      : 'f',       
+                          output_duplicateSpans: true,      
+                          output_trimSpaces    : false,       // remove extra white-space characters from beginning & end
+                          output_saveFileName  : '{{ reportName }}',
+                          output_callback      : function(config, data) { return true; }
+                        }                        
+                    }) 
+                    .tablesorterPager({
+                        container: $(".pager"),
+                        ajaxUrl: null,
+                        ajaxProcessing: function(ajax) {
+                            if (ajax && ajax.hasOwnProperty('data')) {
+                                return [ajax.data, ajax.total_rows];
+                            }
+                        },
+                        output: '{startRow} to {endRow} ({totalRows})',
+                        updateArrows: true,
+                        page: 0,
+                        size: 10,
+                        fixedHeight: true,
+                        removeRows: false,
+                        cssNext: '.next',
+                        cssPrev: '.prev',
+                        cssFirst: '.first',
+                        cssLast: '.last',
+                        cssGoto: '.gotoPage',
+                        cssPageDisplay: '.pagedisplay',
+                        cssPageSize: '.pagesize',
+                        cssDisabled: 'disabled'
+                    });
+            }); 
+
+        </script>
+    </body>
+</html>

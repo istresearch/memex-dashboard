@@ -8,4 +8,5 @@ urlpatterns = patterns('',
     url(r'^(?P<_type>.+)/analysis/?$', 'app.views.analysis'),
     url(r'^(?P<_type>.+)/keyword/?$', 'app.views.keyword'),
     url(r'^get/(?P<_type>.+)/(?P<_id>.+)/?$', 'app.views.get'),
+    url(r'^report/?$', 'app.views.report')
 )

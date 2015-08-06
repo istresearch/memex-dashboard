@@ -29,9 +29,9 @@
                 <h1 id="logo"><a class="go-home" href="#">MEMEX <div style="font-size:10pt">Crawl Dashboard</div></a></h1>
 
                 <!-- Nav -->
-                <nav id="nav">
+                <nav id="nav">               
                     <header>
-                        <h2>Domain</h2>
+                        <h2>Domain <a href="/report">(Stats)</a></h2>
                     </header>
                     <ul>
                         {% for domain in domains.buckets %}
@@ -42,7 +42,7 @@
                             </a>
                         </li>
                         {% endfor %}
-                    </ul>
+                    </ul>             
                 </nav>
                 <div id="domain-sidebar"></div>
             </div>
@@ -57,7 +57,7 @@
         <script>
             $(function() {
                 app.mainPage();
-                $("#nav a").first().click();
+                $("#nav ul a").first().click();
             });
         </script>
     </body>
