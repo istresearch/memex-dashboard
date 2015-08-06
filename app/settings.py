@@ -95,3 +95,9 @@ ELASTICSEARCH = {
     'hosts': os.environ.get('ES_HOSTS', 'localhost').split(','),
     'index': os.environ.get('ES_INDEX', 'memex')
 }
+
+SCRIPTS_DIR = os.environ.get('SCRIPTS_DIR', 'scripts/')
+
+CRAWL_REPORT_NAME_DEFAULT = os.environ.get('CRAWL_REPORT_NAME_DEFAULT', 'domain_stats_report.csv')
+
+CRAWL_REPORT_DIRECTORY = os.environ.get('CRAWL_REPORT_DIRECTORY', '')
