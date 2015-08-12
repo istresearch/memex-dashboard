@@ -96,7 +96,7 @@
                     </tr>
                     {% for doc in docs %}
                     <tr data-id="{{doc.id}}">
-                        <td><a class="show-scrape" href="get/{{doc.type}}/{{doc.id}}" title="{{doc.fields.source.0.url}}">{{ doc.fields.source.0.url|truncatechars:85 }}</a></td>
+                        <td><a class="show-scrape" href="get/{{doc.index}}/{{doc.type}}/{{doc.id}}" title="{{doc.fields.source.0.url}}">{{ doc.fields.source.0.url|truncatechars:85 }}</a></td>
                         <td>{{ doc.fields.source.0.timestamp|timestamp }}</td>
 
                         <td><a href="{{doc.fields.source.0.url}}" target="_blank">visit</a></td>

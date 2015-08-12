@@ -127,13 +127,13 @@ def keyword(request, _type,):
 
     return HttpResponse(json.dumps(response), 'application/json')
 
-def get(request, _type, _id):
+def get(request, _index, _type, _id):
     response = { 'site': get_current_site(request).name, 'domains': [] }
     client = Elasticsearch(settings.ELASTICSEARCH['hosts'], timeout=ELASTICSEARCH_TIMEOUT)
 
     response['domains'] = _facet(client, '_type')
     
-    doc = client.get(index=settings.ELASTICSEARCH['index'], doc_type=_type, id=_id)
+    doc = client.get(index=_index, doc_type=_type, id=_id)
     doc['id'] = doc.pop('_id')
     doc['type'] = doc.pop('_type')
     doc['source'] = doc.pop('_source')
