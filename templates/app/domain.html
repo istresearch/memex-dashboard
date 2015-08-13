@@ -1,6 +1,7 @@
 <!DOCTYPE HTML>
 {% load humanize %}
 {% load memexfilters %}
+
 <html>
     <head>
         <title>{{ site }}</title>
@@ -22,7 +23,7 @@
             <div id="content">
                 <div class="inner">
                     <article class="box post">
-                        <h2>{{ filter.domain|capfirst }}</h2>
+                        <h2>{{ filter.domain|capfirst }}</h2><a href="{% url 'app.views.report' %}?domain={{filter.domain}}">Stats</a>
                     </article>
                     <section class="box">
                         <p><a href="{{filter.domain}}/analysis">Keyword Analysis</a></p>
@@ -126,7 +127,7 @@
                 <!-- Nav -->
                 <nav id="nav">
                     <header>
-                        <h2>Domain</h2>
+                        <h2>Domain <a href="{% url 'app.views.report' %}">(Stats)</a></h2>
                     </header>
                     <ul>
                         {% for domain in domains.buckets %}

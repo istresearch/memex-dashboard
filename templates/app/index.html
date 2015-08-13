@@ -31,7 +31,7 @@
                 <!-- Nav -->
                 <nav id="nav">               
                     <header>
-                        <h2>Domain <a href="/report">(Stats)</a></h2>
+                        <h2>Domain <a href="{% url 'app.views.report' %}">(Stats)</a></h2>
                     </header>
                     <ul>
                         {% for domain in domains.buckets %}

@@ -5,7 +5,7 @@
 <div id="content">
     <div class="inner">
         <article class="box post">
-            <h2>{{ filter.domain|capfirst }}</h2><a href="/report?domain={{filter.domain}}">Stats</a>
+            <h2>{{ filter.domain|capfirst }}</h2>
         </article>
         <section class="box">
             <p><a href="{{filter.domain}}/analysis">Keyword Analysis</a></p>
@@ -109,7 +109,7 @@
     <!-- Nav -->
     <nav id="nav">
         <header>
-            <h2>Domain <a href="/report">(Stats)</a></h2>
+            <h2>Domain <a href="{% url 'app.views.report' %}">(Stats)</a></h2>
         </header>
         <ul>
             {% for domain in domains.buckets %}

@@ -78,7 +78,7 @@
                 <!-- Nav -->
                 <nav id="nav">
                     <header>
-                        <h2>Domain</h2>
+                        <h2>Domain <a href="{% url 'app.views.report' %}">(Stats)</a></h2>
                     </header>
                     <ul>
                         {% for domain in domains.buckets %}
@@ -149,7 +149,7 @@
                   if ( valid ) {
                     console.log('loading report from ' + $("#loadDate").val() + " near " + $("#loadHour").val() + $("#loadAMorPM").val() );
                     if ( $(document).data("domain") != '') {
-                        window.location = "/report?datetime=" + $("#loadDate").val() + "_" + $("#loadHour").val() + $("#loadAMorPM").val() + "&domain={{domain}}";
+                        window.location = "{% url 'app.views.report' %}?datetime=" + $("#loadDate").val() + "_" + $("#loadHour").val() + $("#loadAMorPM").val() + "&domain={{domain}}";
                     }
                     else {
                        window.location = "/report?datetime=" + $("#loadDate").val() + "_" + $("#loadHour").val() + $("#loadAMorPM").val() ;                        
@@ -203,7 +203,7 @@
 
                 $("#statsReport") 
                     .tablesorter({
-                        widthFixed: true, 
+                        widthFixed: false, 
                         widgets: ['uitheme', 'zebra', 'filter', 'output'], 
                         theme: 'jui',
                         showProcessing: true,

@@ -159,8 +159,8 @@ def get(request, _index, _type, _id):
                 doc['source']['crawl_data']['images'] = imglist
     '''
     crawl_data = doc['source'].get('crawl_data')
-    if crawl_data:
-        doc['crawl_data_json'] = json.dumps(crawl_data, indent=4)
+    #if crawl_data:
+    #    doc['crawl_data_json'] = json.dumps(crawl_data, indent=4)
     #except:
     #    pass
 
@@ -179,7 +179,7 @@ def report(request):
     _archiveRequest = request.GET.get('datetime', '')
     _domain = request.GET.get('domain', '')
 
-    reportGenScript = settings.SCRIPTS_FOLDER + 'domain-stats-report-gen.py'
+    reportGenScript = settings.SCRIPTS_DIR + 'domain-stats-report-gen.py'
     reportName = settings.CRAWL_REPORT_NAME_DEFAULT
     reportDirectory = settings.CRAWL_REPORT_DIRECTORY
     reportLocation = reportDirectory + reportName
