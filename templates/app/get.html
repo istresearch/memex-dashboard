@@ -5,5 +5,5 @@
     <div><span class="title">URL:</span> <a href="{{doc.source.url}}" target="_blank">{{ doc.source.url }}</a></div>
     <div><span class="title">Timestamp:</span> {{ doc.source.timestamp|timestamp }}</div>
     <div class="crawldata"><span class="title"><a class="toggle" href="#">Crawl Data:</a></span><pre>{{ doc.crawl_data_json }}</pre></div>
-    <div class="content"><span class="title"><a class="toggle" href="#">Content:</a></span> <pre>{{ doc.source.raw_content|prettifyhtml }}</pre></div>
+    <div class="content"><span class="title"><a class="toggle" href="#">Content:</a></span> <pre>{{ doc.source.raw_content}}</pre></div>
 </div>

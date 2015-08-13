@@ -140,35 +140,16 @@ def get(request, _index, _type, _id):
     doc['index'] = doc.pop('_index')
     doc['version'] = doc.pop('_version')
 
-    #try:
-    '''
-    url = doc['source']['url']
-    if doc['source']['raw_content']:
-            soup = bs(doc['source']['raw_content'], 'html.parser')
-            images = soup.find_all('img')
-            imglist = []
-            for image in images:
-                try:
-                    imglist.append(urlparse.urljoin(url, image.get('src')))
-                except:
-                    imglist.append(urlparse.urljoin(url[0], image.get('src')))
-            try:
-                doc['source']['crawl_data']['images'] = imglist
-            except:
-                doc['source']['crawl_data'] = {}
-                doc['source']['crawl_data']['images'] = imglist
-    '''
     crawl_data = doc['source'].get('crawl_data')
-    #if crawl_data:
-    #    doc['crawl_data_json'] = json.dumps(crawl_data, indent=4)
-    #except:
-    #    pass
+    if crawl_data:
+        doc['crawl_data_json'] = json.dumps(crawl_data, indent=4)
 
     response['doc'] = doc
 
     _format = request.GET.get('format', '')
     if _format == 'json':
         return HttpResponse(json.dumps(response), 'application/json')
+    #return HttpResponse(json.dumps(response), 'application/json')
     return render(request, 'app/get.html', response)
 
 def report(request):
