@@ -99,8 +99,10 @@
                     <tr data-id="{{doc.id}}">
                         <td><a class="show-scrape" href="get/{{doc.index}}/{{doc.type}}/{{doc.id}}" title="{{doc.fields.source.0.url}}">{{ doc.fields.source.0.url|truncatechars:85 }}</a></td>
                         <td>{{ doc.fields.source.0.timestamp|timestamp }}</td>
-
-                        <td><a href="{{doc.fields.source.0.url}}" target="_blank">visit</a></td>
+	                {% if doc.fields.source.0.crawl_data.site_capture %}
+                        <td><a href=="http://memex-dev.istresearch.com/site-capture-service/{{doc.fields.source.0.crawl_data.site_capture}}" target="_blank">view</a></td>
+                        {% endif %}
+			<td><a href="{{doc.fields.source.0.url}}" target="_blank">visit</a></td>
                     </tr>
                     {% endfor %}
                     </table>
