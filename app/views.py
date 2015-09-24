@@ -160,7 +160,7 @@ def report(request):
     _archiveRequest = request.GET.get('datetime', '')
     _domain = request.GET.get('domain', '')
 
-    reportGenScript = settings.SCRIPTS_DIR + 'domain-stats-report-gen.py'
+    reportGenScript = '/data/sites/dashboard/app/domain-stats-report-gen.py'
     reportName = settings.CRAWL_REPORT_NAME_DEFAULT
     reportDirectory = settings.CRAWL_REPORT_DIRECTORY
     reportLocation = reportDirectory + reportName
@@ -180,7 +180,15 @@ def report(request):
                     break
             files.append(_archiveRequest)
             reportLocation = reportDirectory + reportName
-            os.system("python " + reportGenScript + " " + reportLocation + " " + _domain)
+            try:
+                retcode = call("python " + reportGenScript + " " + reportLocation + " " + _domain, shell=True)
+                if retcode < 0:
+                    print >>sys.stderr, "Child was terminated by signal", -retcode
+                else:
+                    print >>sys.stderr, "Child returned", retcode
+            except OSError as e:
+                print >>sys.stderr, "Execution failed:", e
+            #os.system("python " + reportGenScript + " " + reportLocation + " " + _domain)
     elif _domain != '':
         reportDirectory += _domain + '/'
         if not os.path.exists(reportDirectory):
