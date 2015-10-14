@@ -16,6 +16,7 @@ log = logging.getLogger(__name__)
 #See ticket MEM-681; this is a temporary workaround 
 full_urls = {
     "com.au": "craigslist.com.au",
+    "com.br": "foxbit.com.br",
     "co.uk": "craigslist.co.uk",
     "co.th": "craigslist.co.th",
     "co.nz": "craigslist.co.nz",
