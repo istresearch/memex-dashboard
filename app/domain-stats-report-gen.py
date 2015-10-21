@@ -60,7 +60,7 @@ query = Dict()
 
 #print query
 
-query = {"aggs": {"by_domain": {"terms": {"field": "url.domain", "size": 0}, "aggs": {"by_type": {"terms": {"field": "_type", "size": 0}, "aggs": {"last_30_days": {"filter": {"range": {"timestamp": {"gt": now - 30 * 86400 * 1000}}}}, "imported": {"filter": {"bool": {"must": {"term": {"imported": "true"}}}}}, "last_90_days": {"filter": {"range": {"timestamp": {"gt": now - 60 * 86400 * 1000}}}}, "scraped_since": {"min": {"field": "timestamp", "format": "yyyy-MM-dd"}}, "postings_count": {"value_count": {"field": "url"}}, "last_60_days": {"filter": {"range": {"timestamp": {"gt": now - 30 * 86400 * 1000}}}}, "ic3": {"value_count": {"field": "crawl_data.attributes.images.url"}}, "ic2": {"value_count": {"field": "images"}}, "ic1": {"value_count": {"field": "crawl_data.images"}}}}}}}}
+query = {"aggs": {"by_domain": {"terms": {"field": "url.domain", "size": 0}, "aggs": {"by_type": {"terms": {"field": "_type", "size": 0}, "aggs": {"last_30_days": {"filter": {"range": {"timestamp": {"gt": now - 30 * 86400 * 1000}}}}, "imported": {"filter": {"bool": {"must": {"term": {"imported": "true"}}}}}, "last_90_days": {"filter": {"range": {"timestamp": {"gt": now - 60 * 86400 * 1000}}}}, "imported_within_90_days": {"filter": {"range": {"imported_ts": {"gt": now - 60 * 86400 * 1000}}}}, "scraped_since": {"min": {"field": "timestamp", "format": "yyyy-MM-dd"}}, "postings_count": {"value_count": {"field": "url"}}, "last_60_days": {"filter": {"range": {"timestamp": {"gt": now - 30 * 86400 * 1000}}}}, "ic3": {"value_count": {"field": "crawl_data.attributes.images.url"}}, "ic2": {"value_count": {"field": "images"}}, "ic1": {"value_count": {"field": "crawl_data.images"}}}}}}}}
 
 #query = {"aggs": {"by_domain": {"terms": {"field": "url.domain", "size": 0 } } } }
 
@@ -103,7 +103,7 @@ for item in all_domains['aggregations']['by_domain']['buckets']:
         tot_60 += typed_item['last_60_days']['doc_count']
         tot_90 += typed_item['last_90_days']['doc_count']
         scraping = 'Yes' if typed_item['last_90_days']['doc_count'] > 0 else 'No'
-        importing = 'Yes' if typed_item['imported']['doc_count'] > 0 and typed_item['last_90_days']['doc_count'] > 0 else 'No'
+        importing = 'Yes' if typed_item['imported_within_90_days']['doc_count'] > 0 else 'No'
         tot_scraping += 1 if scraping == 'Yes' else 0
         tot_importing += 1 if importing == 'Yes' else 0
         url = full_urls[item['key']] if item['key'] in full_urls else item['key']
@@ -116,7 +116,7 @@ for item in all_domains['aggregations']['by_domain']['buckets']:
                            'scraped_since': scrapedSince,
                            'all_postings': typed_item['postings_count']['value'],
                            'distinct_documents': typed_item['doc_count'],
-                           'number_of_images':  imageCount,
+                           'number_of_images': imageCount,
                            'last_30_days': typed_item['last_30_days']['doc_count'],
                            'last_60_days': typed_item['last_60_days']['doc_count'],
                            'last_90_days': typed_item['last_90_days']['doc_count']})
