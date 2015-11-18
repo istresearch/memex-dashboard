@@ -3,17 +3,23 @@ import csv
 import os
 import time 
 import settings
-
+import subprocess
+import sys
+from models import Url_Note
+from models import Sections_Scraping
 from urllib2 import urlparse
 from bs4 import BeautifulSoup as bs
 from elasticsearch import Elasticsearch 
 from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.sites.shortcuts import get_current_site
+from django.core import serializers
 from os import listdir
 from os.path import isfile, join
 from dateutil import parser
+#from sql import *
 
 now = time.time() * 1000
 
@@ -94,7 +100,7 @@ def domain(request, _type):
     if _format == 'json':
         return HttpResponse(json.dumps(response), 'application/json')
     return render(request, 'app/domain.html', response)
-
+    
 def analysis(request, _type):
     response = { 'site': get_current_site(request).name, 'domains': [] }
     client = Elasticsearch(settings.ELASTICSEARCH['hosts'], timeout=ELASTICSEARCH_TIMEOUT)
@@ -153,18 +159,47 @@ def get(request, _index, _type, _id):
     return render(request, 'app/get.html', response)
 
 def report(request):
+
+    _url = request.GET.get('url')
+    _note = request.GET.get('note')
+    _sections_scraping = request.GET.get('sectionsScraping')
+    _archiveRequest = request.GET.get('datetime', '')
+    _domain = request.GET.get('domain', '')
+    
+    if _url: 
+        if _sections_scraping is not None:   
+            try:
+                ss = Sections_Scraping.objects.get(url=_url)
+                ss.sections_scraping = _sections_scraping
+            except:
+                ss = Sections_Scraping(url=_url, sections_scraping=_sections_scraping)
+            ss.save()
+        if _note:
+            note = Url_Note(url=_url, note=_note)
+            note.save()
+        params = ''
+        if _archiveRequest != '':
+            params += '?datetime=' + _archiveRequest
+        if _domain != '': 
+            if params != '':
+                params += '&domain=' + _domain
+            else:
+                params += '?domain=' + _domain
+        return HttpResponseRedirect("/memex-dashboard/report" + params)
+         
     response = { 'site': get_current_site(request).name, 'domains': [] }
     client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
     response['domains'] = _facet(client, '_type')
 
-    _archiveRequest = request.GET.get('datetime', '')
-    _domain = request.GET.get('domain', '')
-
-    reportGenScript = '/data/sites/dashboard/app/domain-stats-report-gen.py'
+    reportGenScript = settings.SCRIPTS_DIR + 'domain-stats-report-gen.py'
     reportName = settings.CRAWL_REPORT_NAME_DEFAULT
     reportDirectory = settings.CRAWL_REPORT_DIRECTORY
     reportLocation = reportDirectory + reportName
-    fileSuffix = ".csv"
+    fileSuffix = ".csv"  
+
+    sections_scraping = serializers.serialize('json', Sections_Scraping.objects.all(), fields=('url', 'sections_scraping', 'timestamp'))
+    notes = serializers.serialize('json', Url_Note.objects.all(), fields=('url','note', 'timestamp', 'user'))
+
     if _archiveRequest != '':
         if _domain != '':
             reportDirectory += _domain + '/'
@@ -181,7 +216,7 @@ def report(request):
             files.append(_archiveRequest)
             reportLocation = reportDirectory + reportName
             try:
-                retcode = call("python " + reportGenScript + " " + reportLocation + " " + _domain, shell=True)
+                retcode = subprocess.call("python " + reportGenScript + " " + reportLocation + " " + _domain, shell=True)
                 if retcode < 0:
                     print >>sys.stderr, "Child was terminated by signal", -retcode
                 else:
@@ -195,11 +230,30 @@ def report(request):
             os.makedirs(reportDirectory)
         reportName = 'CDR-Stats-' + time.strftime("%Y-%m-%d_%H%M%S") + "-" + _domain + fileSuffix
         reportLocation = reportDirectory + reportName
-        os.system("python " + reportGenScript + " " + reportLocation + " " + _domain)
+        #try:
+        #    retcode = subprocess.call("python " + reportGenScript + " " + reportLocation + " " + _domain, shell=True)
+        #    if retcode < 0:
+        #        print >>sys.stderr, "Child was terminated by signal", -retcode
+        #    else:
+        #        print >>sys.stderr, "Child returned", retcode
+        #except OSError as e:
+        #    print >>sys.stderr, "Execution failed:", e
+        #os.system("python " + reportGenScript + " " + reportLocation + " " + _domain)
+        
+        os.system("python " + reportGenScript + " " + reportLocation + " " + _domain + " '" + notes + "'" + " '" + sections_scraping + "' ")
     else:
         reportName = 'CDR-Stats-' + time.strftime("%Y-%m-%d_%H%M%S") + fileSuffix
         reportLocation = reportDirectory + reportName
-        os.system("python " + reportGenScript + " " + reportLocation)
+        try:
+            retcode = subprocess.call("python " + reportGenScript + " " + reportLocation + " " + _domain, shell=True)
+            if retcode < 0:
+                print >>sys.stderr, "Child was terminated by signal", -retcode
+            else:
+                print >>sys.stderr, "Child returned", retcode
+        except OSError as e:
+            print >>sys.stderr, "Execution failed:", e
+
+        #os.system("python " + reportGenScript + " " + reportLocation)
 
     response['domain'] = _domain
     response['reportName'] = reportName

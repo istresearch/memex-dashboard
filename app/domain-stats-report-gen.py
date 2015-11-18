@@ -8,6 +8,7 @@ import time
 import os
 import settings
 from addict import Dict
+#from models import Url_Note
 
 now = time.time() * 1000
 
@@ -68,7 +69,7 @@ print query
 
 #query = '{ "query": { "match_all": {} } }'
 
-print 'sysargv2: '
+#print 'sysargv3: ' + list(sys.argv[3])
 #log.error('arguments: ' + sys.argv[1] + ' ' + sys.argv[2])
 all_domains = {}
 #if len(sys.argv) > 2:
@@ -81,7 +82,7 @@ log.debug(json.dumps(all_domains, indent=4))
 
 field_names = ['domain', 'source_type', 'url', 'currently_scraping', 'currently_importing',
                'sections_scraping', 'scraped_since', 'all_postings', 'distinct_documents',
-               'number_of_images', 'last_30_days', 'last_60_days', 'last_90_days']
+               'number_of_images', 'last_30_days', 'last_60_days', 'last_90_days', 'notes']
 
 f = open(outputFile, 'w+')
 csv_file = csv.DictWriter(
@@ -89,6 +90,9 @@ csv_file = csv.DictWriter(
 csv_file.writeheader()
 
 tot_postings, tot_docs, tot_images, tot_30, tot_60, tot_90, tot_scraping, tot_importing = 0, 0, 0, 0, 0, 0, 0, 0
+
+allNotes = json.loads(sys.argv[3])
+allSectionsScraping = json.loads(sys.argv[4])
 
 for item in all_domains['aggregations']['by_domain']['buckets']:
     for typed_item in item['by_type']['buckets']:
@@ -107,19 +111,28 @@ for item in all_domains['aggregations']['by_domain']['buckets']:
         tot_scraping += 1 if scraping == 'Yes' else 0
         tot_importing += 1 if importing == 'Yes' else 0
         url = full_urls[item['key']] if item['key'] in full_urls else item['key']
+        note = ""
+        sectionsScraping = ""
+        for ss in allSectionsScraping: 
+            if ss['fields']['url'].strip() == url:
+                sectionsScraping = ss['fields']['sections_scraping']
+        for f in allNotes:
+            if f['fields']['url'].strip() == url:
+                note += f['fields']['note'] + "\n *************** \n "
         csv_file.writerow({'domain': typed_item['key'],
                            'source_type': 'Ads',
                            'url': url,
                            'currently_scraping': scraping,
                            'currently_importing': importing,
-                           'sections_scraping': '',
+                           'sections_scraping': sectionsScraping,
                            'scraped_since': scrapedSince,
                            'all_postings': typed_item['postings_count']['value'],
                            'distinct_documents': typed_item['doc_count'],
                            'number_of_images': imageCount,
                            'last_30_days': typed_item['last_30_days']['doc_count'],
                            'last_60_days': typed_item['last_60_days']['doc_count'],
-                           'last_90_days': typed_item['last_90_days']['doc_count']})
+                           'last_90_days': typed_item['last_90_days']['doc_count'],
+                           'notes': note})
 
 csv_file.writerow({'domain': 'TOTALS',
                    'source_type': '',
@@ -133,7 +146,8 @@ csv_file.writerow({'domain': 'TOTALS',
                    'number_of_images': tot_images,
                    'last_30_days': tot_30,
                    'last_60_days': tot_60,
-                   'last_90_days': tot_90})
+                   'last_90_days': tot_90,
+                   'notes': ''})
 
 f.close()
 

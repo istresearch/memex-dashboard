@@ -8,8 +8,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <base href="{% url 'app.views.index' %}">
         <link rel="stylesheet" href="static/assets/css/main.css" />
-        <link rel="stylesheet" href="static/assets/css/theme.jui.min.css" />
-        <link rel="stylesheet" href="static/assets/css/jquery.tablesorter.pager.min.css" />   
+        <link rel="stylesheet" href="static/assets/tablesorter-master/dist/css/theme.jui.min.css" />
+        <link rel="stylesheet" href="static/assets/tablesorter-master/dist/css/jquery.tablesorter.pager.min.css" />   
         <link rel="stylesheet" href="static/assets/jquery-ui/jquery-ui.min.css">
         <link rel="icon" type="image/png" href="static/favicon-32x32.png" sizes="32x32">
         <link rel="icon" type="image/png" href="static/favicon-96x96.png" sizes="96x96">
@@ -53,14 +53,23 @@
                             <th>Number of Images ({{totals.9}})</th>
                             <th>Last 30 Days ({{totals.10}})</th>   
                             <th>Last 60 Days ({{totals.11}})</th>   
-                            <th>Last 90 Days ({{totals.12}})</th>                                                           
+                            <th>Last 90 Days ({{totals.12}})</th>   
+ 			    <th>Notes</th>                                                        
                         </tr> 
                     </thead> 
                     <tbody> 
-                    {% for row in records %}
-                        <tr>
+                    {% for row in records %}		    
+                        <tr id={{ forloop.counter0 }}>
                             {% for field in row %}
-                                <td>{{ field }} </td>
+			    	{% if forloop.counter0 == 13 %}
+	                                {% if field != '' %}
+                        	                <td rowId={{ forloop.parentloop.counter0 }} data-value='{{field}}'>Click to View/Add</td>
+        	                        {% else %}
+						<td rowId={{ forloop.parentloop.counter0 }} data-value='{{field}}'>Click to Add</td>
+                	                {% endif %}
+			        {% else %}
+					<td rowId={{ forloop.parentloop.counter0 }}>{{ field }} </td>
+				{% endif %}                                
                             {% endfor %}
                         </tr>
                     {% endfor %}                    
@@ -124,18 +133,36 @@
           </form>
         </div>
 
+        <div id="user-notes-dialog-form">
+          <form>	
+            <fieldset>
+              <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+            </fieldset>
+          </form>
+        </div>
+
+        <div id="sections-scraping-dialog-form">
+          <form>
+            <fieldset>
+	      <input type="text" id="sectionsScrapingText" />
+              <input type="submit" tabindex="-1" style="position:absolute; top:-1000px"/>
+            </fieldset>
+          </form>
+        </div>
+
         <!-- Scripts -->
-        <script src="static/assets/js/jquery.min.js"></script>
+	<script src="static/assets/tablesorter-master/dist/js/jquery.min.js"></script>
         <script src="static/assets/js/skel.min.js"></script>
         <script src="static/assets/js/util.js"></script>
         <script src="static/assets/js/main.js"></script>        
-        <script src="static/assets/jquery-ui/jquery-ui.min.js"></script>
-        <script src="static/assets/js/jquery.tablesorter.min.js"></script> 
-        <script src="static/assets/js/jquery.tablesorter.widgets.min.js"></script>     
+        <script src="static/assets/tablesorter-master/docs/js/jquery-ui.min.js"></script>
+        <script src="static/assets/tablesorter-master/dist/js/jquery.tablesorter.min.js"></script> 
+        <script src="static/assets/tablesorter-master/dist/js/jquery.tablesorter.widgets.min.js"></script>     
         <script src="static/assets/js/jquery.tablesorter.pager.min.js"></script>             
-        <script src="static/assets/js/widget-filter-type-insideRange.min.js"></script>
-        <script src="static/assets/js/widget-output.min.js"></script>        
-        <script src="static/assets/js/widget-uitheme.min.js"></script>                
+        <script src="static/assets/tablesorter-master/dist/js/widgets/widget-filter-type-insideRange.min.js"></script>
+        <script src="static/assets/tablesorter-master/dist/js/widgets/widget-output.min.js"></script>        
+        <script src="static/assets/tablesorter-master/dist/js/widgets/widget-uitheme.min.js"></script>           
+        <script src="static/assets/tablesorter-master/dist/js/widgets/widget-editable.min.js"></script>     
         <script src="static/assets/js/parser-date-range.min.js"></script>        
         <script>  
 
@@ -201,10 +228,90 @@
                         $("#statsReport").trigger('outputTable');
                     });
 
+                function userNotes() {
+	          console.log('user input...' + $( "#user-notes-dialog-form" ).data("notes")); 
+		  window.location = "{% url 'app.views.report' %}?domain=" + $(document).data("domain") 
+				  	+ "&url=" + $("#user-notes-dialog-form").data("url") 
+					+ "&note=" + document.getElementById("addNoteText").value;
+                  return true;
+                }
+
+                userNotesDialog = $( "#user-notes-dialog-form" ).dialog({
+                  autoOpen: false,
+                  modal: true,
+                  open: function() {		
+			var form = document.getElementById("user-notes-dialog-form");
+			while (form.firstChild) {
+ 				form.removeChild(form.firstChild);
+			}
+			userNotesDialog.dialog('option', 'title', userNotesDialog.data("title"));
+                    	var existingNotes = userNotesDialog.data("notes");
+			existingNotes = existingNotes.replace(/(\r\n|\n|\r)/gm,"");
+			existingNotes = existingNotes.split("***************");
+			for(i=0;i<existingNotes.length-1;i++) {
+		                var noteText = document.createElement("div");
+				noteText.innerHTML = "<br><textarea readonly>" + existingNotes[i] + "</textarea>";
+                		document.getElementById("user-notes-dialog-form").appendChild(noteText);
+			}
+                        var newNote = document.createElement("div");
+                        newNote.innerHTML = "<br><textarea id='addNoteText'/>";
+                        document.getElementById("user-notes-dialog-form").appendChild(newNote);
+                  },
+                  buttons: {
+                    "Add Note": userNotes,
+                    Cancel: function() {			
+                        userNotesDialog.dialog( "close" );
+                    }
+                  },
+                  close: function() {
+                    form[ 0 ].reset();
+                  },
+		  closeOnEscape: false,
+                });
+
+                uForm = userNotesDialog.find( "form" ).on( "submit", function( event ) {
+                  event.preventDefault();
+                  userNotes();
+                });
+
+                function sectionsScraping() {
+                  console.log('user input...' + $( "#sections-scraping-dialog-form" ).data("sectionsScraping"));
+                  window.location = "{% url 'app.views.report' %}?domain=" + $(document).data("domain") 
+					+ "&url=" + $("#sections-scraping-dialog-form").data("url") 
+					+ "&sectionsScraping=" + document.getElementById("sectionsScrapingText").value;
+                  return true;
+                }
+
+                sectionsScrapingDialog = $( "#sections-scraping-dialog-form" ).dialog({
+                  autoOpen: false,
+                  height: 250,
+                  width: 400,
+                  modal: true,
+                  open: function() {
+                        var existingSectionsScraping = sectionsScrapingDialog.data("sectionsScraping");
+			document.getElementById("sectionsScrapingText").value=existingSectionsScraping;
+                  },
+                  buttons: {
+                    "Update Sections": sectionsScraping,
+                    Cancel: function() {
+                        console.log('sections scraping: ' + '{{ sectionsScraping }}')
+                        sectionsScrapingDialog.dialog( "close" );
+                    }
+                  },
+                  close: function() {
+                    form[ 0 ].reset();
+                  }
+                });
+
+                ssForm = sectionsScrapingDialog.find( "form" ).on( "submit", function( event ) {
+                  event.preventDefault();
+                  sectionsScraping();
+                });
+
                 $("#statsReport") 
                     .tablesorter({
                         widthFixed: false, 
-                        widgets: ['uitheme', 'zebra', 'filter', 'output'], 
+                        widgets: ['uitheme', 'zebra', 'filter', 'output', 'editable'], 
                         theme: 'jui',
                         showProcessing: true,
                         cancelSelection: true,
@@ -221,7 +328,36 @@
                           output_duplicateSpans: true,      
                           output_trimSpaces    : false,       // remove extra white-space characters from beginning & end
                           output_saveFileName  : '{{ reportName }}',
-                          output_callback      : function(config, data) { return true; }
+                          output_callback      : function(config, data) { return true; },
+		          editable_columns       : [5, 13],   
+		          editable_enterToAccept : true,          // press enter to accept content, or click outside if false
+		          editable_autoAccept    : true,          // accepts any changes made to the table cell automatically (v2.17.6)
+		          editable_autoResort    : false,         // auto resort after the content has changed.
+		          editable_validate      : null,          // return a valid string: function(text, original, columnIndex){ return text; }
+		          editable_focused       : function(txt, columnIndex, $element) {
+   	                        var val = $element.closest('td').text();
+			        var rowId = $element.closest('td').attr('rowId');
+		                var url = document.getElementById(rowId).cells[2].textContent;
+				if( $element.closest('td')[0].cellIndex == 5) {
+					document.getElementById("sections-scraping-dialog-form").setAttribute('title', "Sections Scraping for " + url);
+					sectionsScrapingDialog.data("url", url).data("sectionsScraping", val).dialog( "open" );
+				}
+				else {
+					userNotesDialog.data("url", url).data("title", "Notes for " + url).data("notes", $element.closest('td').data("value")).dialog( "open" );
+				}
+		          	$element.addClass('focused');
+		          },
+		          editable_blur          : function(txt, columnIndex, $element) {
+		                $element.removeClass('focused');
+		          },
+		          editable_selectAll     : function(txt, columnIndex, $element){
+		                return /^b/i.test(txt) && columnIndex === 0;
+	 	          },
+		          editable_wrapContent   : '<div>',       // wrap all editable cell content... makes this widget work in IE, and with autocomplete
+		          editable_trimContent   : true,          // trim content ( removes outer tabs & carriage returns )
+		          editable_noEdit        : 'no-edit',     // class name of cell that is not editable
+		          editable_editComplete  : function(txt, columnIndex, $element) {
+			  }
                         }                        
                     }) 
                     .tablesorterPager({
