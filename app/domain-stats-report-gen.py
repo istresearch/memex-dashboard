@@ -72,12 +72,11 @@ print query
 #print 'sysargv3: ' + list(sys.argv[3])
 #log.error('arguments: ' + sys.argv[1] + ' ' + sys.argv[2])
 all_domains = {}
-#if len(sys.argv) > 2:
-    #all_domains = es.search(index=os.environ.get('ES_INDEX', 'memex'), doc_type=sys.argv[2], body=query)
-all_domains = es.search(index='memex-domains', doc_type=sys.argv[2], body=query)
-#else:
-    #all_domains = es.search(index=os.environ.get('ES_INDEX', 'memex'), body=query)
-    #all_domains = es.search(index=settings.ELASTICSEARCH['index'], body=query)
+if len(sys.argv) > 2:
+    all_domains = es.search(index=os.environ.get('ES_INDEX', 'memex'), doc_type=sys.argv[2], body=query)
+else:
+    all_domains = es.search(index=os.environ.get('ES_INDEX', 'memex'), body=query)
+
 log.debug(json.dumps(all_domains, indent=4))
 
 field_names = ['domain', 'source_type', 'url', 'currently_scraping', 'currently_importing',

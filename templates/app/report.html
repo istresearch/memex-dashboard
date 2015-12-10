@@ -67,9 +67,15 @@
         	                        {% else %}
 						<td rowId={{ forloop.parentloop.counter0 }} data-value='{{field}}'>Click to Add</td>
                 	                {% endif %}
-			        {% else %}
-					<td rowId={{ forloop.parentloop.counter0 }}>{{ field }} </td>
-				{% endif %}                                
+			        {% elif forloop.counter0 == 5 %}
+                                        {% if field == '' %}
+                                                <td rowId={{ forloop.parentloop.counter0 }} data-value='{{field}}'>Click to Add</td>
+                                        {% else %}
+                                                <td rowId={{ forloop.parentloop.counter0 }} data-value='{{field}}'>{{ field }}</td>
+                                        {% endif %}
+                                {% else %}
+                                        <td rowId={{ forloop.parentloop.counter0 }}>{{ field }} </td>
+                                {% endif %}           
                             {% endfor %}
                         </tr>
                     {% endfor %}                    
@@ -288,6 +294,7 @@
                   width: 400,
                   modal: true,
                   open: function() {
+			sectionsScrapingDialog.dialog('option', 'title', sectionsScrapingDialog.data("url"));
                         var existingSectionsScraping = sectionsScrapingDialog.data("sectionsScraping");
 			document.getElementById("sectionsScrapingText").value=existingSectionsScraping;
                   },
@@ -339,7 +346,7 @@
 			        var rowId = $element.closest('td').attr('rowId');
 		                var url = document.getElementById(rowId).cells[2].textContent;
 				if( $element.closest('td')[0].cellIndex == 5) {
-					document.getElementById("sections-scraping-dialog-form").setAttribute('title', "Sections Scraping for " + url);
+					if( val == "Click to Add") val = "";
 					sectionsScrapingDialog.data("url", url).data("sectionsScraping", val).dialog( "open" );
 				}
 				else {
