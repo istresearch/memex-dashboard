@@ -188,7 +188,7 @@ def report(request):
         return HttpResponseRedirect("/memex-dashboard/report" + params)
          
     response = { 'site': get_current_site(request).name, 'domains': [] }
-    client = Elasticsearch(settings.ELASTICSEARCH['hosts'])
+    client = Elasticsearch(settings.ELASTICSEARCH['hosts'], timeout=ELASTICSEARCH_TIMEOUT)
     response['domains'] = _facet(client, '_type')
 
     reportGenScript = settings.SCRIPTS_DIR + 'domain-stats-report-gen.py'
@@ -215,46 +215,18 @@ def report(request):
                     break
             files.append(_archiveRequest)
             reportLocation = reportDirectory + reportName
-            try:
-                retcode = subprocess.call("python " + reportGenScript + " " + reportLocation + " " + _domain, shell=True)
-                if retcode < 0:
-                    print >>sys.stderr, "Child was terminated by signal", -retcode
-                else:
-                    print >>sys.stderr, "Child returned", retcode
-            except OSError as e:
-                print >>sys.stderr, "Execution failed:", e
-            #os.system("python " + reportGenScript + " " + reportLocation + " " + _domain)
+            retcode = generateReport(reportLocation, _domain)
     elif _domain != '':
         reportDirectory += _domain + '/'
         if not os.path.exists(reportDirectory):
             os.makedirs(reportDirectory)
         reportName = 'CDR-Stats-' + time.strftime("%Y-%m-%d_%H%M%S") + "-" + _domain + fileSuffix
         reportLocation = reportDirectory + reportName
-        #try:
-        #    retcode = subprocess.call("python " + reportGenScript + " " + reportLocation + " " + _domain, shell=True)
-        #    if retcode < 0:
-        #        print >>sys.stderr, "Child was terminated by signal", -retcode
-        #    else:
-        #        print >>sys.stderr, "Child returned", retcode
-        #except OSError as e:
-        #    print >>sys.stderr, "Execution failed:", e
-        #os.system("python " + reportGenScript + " " + reportLocation + " " + _domain)
-        
-        os.system("python " + reportGenScript + " " + reportLocation + " " + _domain + " '" + notes + "'" + " '" + sections_scraping + "' ")
+        retcode = generateReport(reportLocation, _domain, notes, sections_scraping)
     else:
         reportName = 'CDR-Stats-' + time.strftime("%Y-%m-%d_%H%M%S") + fileSuffix
         reportLocation = reportDirectory + reportName
-        try:
-            retcode = subprocess.call("python " + reportGenScript + " " + reportLocation + " " + _domain, shell=True)
-            if retcode < 0:
-                print >>sys.stderr, "Child was terminated by signal", -retcode
-            else:
-                print >>sys.stderr, "Child returned", retcode
-        except OSError as e:
-            print >>sys.stderr, "Execution failed:", e
-
-        #os.system("python " + reportGenScript + " " + reportLocation)
-
+        retcode = generateReport(reportLocation, _domain)
     response['domain'] = _domain
     response['reportName'] = reportName
 
@@ -270,6 +242,90 @@ def report(request):
     f.close()
 
     return render(request, 'app/report.html', response)
+
+@csrf_exempt
+def generateReport(reportLocation, _domain, notes, sections_scraping):
+    outputFile = os.environ.get('CRAWL_REPORT_NAME_DEFAULT', 'domain_stats_report.csv')
+    domain = ''
+    outputFile = reportLocation
+
+    es = Elasticsearch(settings.ELASTICSEARCH['hosts'], timeout=ELASTICSEARCH_TIMEOUT)
+    query = {"aggs": {"by_domain": {"terms": {"field": "url.domain", "size": 0}, "aggs": {"by_type": {"terms": {"field": "_type", "size": 0}, "aggs": {"last_30_days": {"filter": {"range": {"timestamp": {"gt": now - 30 * 86400 * 1000}}}}, "imported": {"filter": {"bool": {"must": {"term": {"imported": "true"}}}}}, "last_90_days": {"filter": {"range": {"timestamp": {"gt": now - 60 * 86400 * 1000}}}}, "imported_within_90_days": {"filter": {"range": {"imported_ts": {"gt": now - 60 * 86400 * 1000}}}}, "scraped_since": {"min": {"field": "timestamp", "format": "yyyy-MM-dd"}}, "postings_count": {"value_count": {"field": "url"}}, "last_60_days": {"filter": {"range": {"timestamp": {"gt": now - 30 * 86400 * 1000}}}}, "ic3": {"value_count": {"field": "crawl_data.attributes.images.url"}}, "ic2": {"value_count": {"field": "images"}}, "ic1": {"value_count": {"field": "crawl_data.images"}}}}}}}}
+    print query
+    all_domains = {}
+    if _domain:
+        all_domains = es.search(index=os.environ.get('ES_INDEX', 'memex'), doc_type=_domain, body=query)
+    else:
+        all_domains = es.search(index=os.environ.get('ES_INDEX', 'memex'), body=query)
+
+    field_names = ['domain', 'source_type', 'url', 'currently_scraping', 'currently_importing',
+                   'sections_scraping', 'scraped_since', 'all_postings', 'distinct_documents',
+                   'last_30_days', 'last_60_days', 'last_90_days', 'number_of_images', 'notes']
+
+    f = open(outputFile, 'w+')
+    csv_file = csv.DictWriter(
+        f, fieldnames=field_names, restval='', dialect='excel')
+    csv_file.writeheader()
+
+    tot_postings, tot_docs, tot_images, tot_30, tot_60, tot_90, tot_scraping, tot_importing = 0, 0, 0, 0, 0, 0, 0, 0
+
+    allNotes = json.loads(notes)
+    allSectionsScraping = json.loads(sections_scraping)
+
+    for item in all_domains['aggregations']['by_domain']['buckets']:
+        for typed_item in item['by_type']['buckets']:
+            scrapedSince = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(typed_item['scraped_since']['value'] / 1000))
+            tot_postings += typed_item['postings_count']['value']
+            tot_docs += typed_item['doc_count']
+            imageCount = typed_item['ic1']['value']
+            imageCount += typed_item['ic2']['value']
+            imageCount += typed_item['ic3']['value']
+            tot_images += imageCount
+            tot_30 += typed_item['last_30_days']['doc_count']
+            tot_60 += typed_item['last_60_days']['doc_count']
+            tot_90 += typed_item['last_90_days']['doc_count']
+            scraping = 'Yes' if typed_item['last_90_days']['doc_count'] > 0 else 'No'
+            importing = 'Yes' if typed_item['imported_within_90_days']['doc_count'] > 0 else 'No'
+            tot_scraping += 1 if scraping == 'Yes' else 0
+            tot_importing += 1 if importing == 'Yes' else 0
+            url = FULL_URLS[item['key']] if item['key'] in FULL_URLS else item['key']
+            note = ""
+            sectionsScraping = ""
+            for ss in allSectionsScraping: 
+                if ss['fields']['url'].strip() == url:
+                    sectionsScraping = ss['fields']['sections_scraping']
+            for f in allNotes:
+                if f['fields']['url'].strip() == url:
+                    note += f['fields']['note'] + "\n *************** \n "
+            csv_file.writerow({'domain': typed_item['key'],
+                               'source_type': 'Ads',
+                               'url': url,
+                               'currently_scraping': scraping,
+                               'currently_importing': importing,
+                               'sections_scraping': sectionsScraping,
+                               'scraped_since': scrapedSince,
+                               'all_postings': typed_item['postings_count']['value'],
+                               'distinct_documents': typed_item['doc_count'],
+                               'last_30_days': typed_item['last_30_days']['doc_count'],
+                               'last_60_days': typed_item['last_60_days']['doc_count'],
+                               'last_90_days': typed_item['last_90_days']['doc_count'],
+                               'number_of_images': imageCount,
+                               'notes': note})
+    csv_file.writerow({'domain': 'TOTALS',
+                       'source_type': '',
+                       'url': '',
+                       'currently_scraping': tot_scraping,
+                       'currently_importing': tot_importing,
+                       'sections_scraping': '',
+                       'scraped_since': '',
+                       'all_postings': tot_postings,
+                       'distinct_documents': tot_docs,
+                       'last_30_days': tot_30,
+                       'last_60_days': tot_60,
+                       'last_90_days': tot_90,
+                       'number_of_images': tot_images,
+                       'notes': ''})
+    #f.close()
 
 @csrf_exempt
 def search(request):
@@ -396,6 +452,27 @@ def _search(client, domain, query={}, filter={}, docs=0, offset=0):
         doc['score'] = doc.pop('_score')
         doc['index'] = doc.pop('_index')
     return response
+
+#See ticket MEM-681; this is a temporary workaround 
+FULL_URLS = {
+    "com.au": "craigslist.com.au",
+    "com.br": "foxbit.com.br",
+    "co.uk": "craigslist.co.uk",
+    "co.th": "craigslist.co.th",
+    "co.nz": "craigslist.co.nz",
+    "com.sg": "craigslist.com.sg",
+    "co.kr": "craigslist.co.kr",
+    "com.tw": "craigslist.com.tw",
+    "com.ph": "craigslist.com.ph",
+    "co.za": "craigslist.co.za",
+    "com.mx": "craigslist.com.mx",
+    "co.in": "craigslist.co.in",
+    "com.tr": "craigslist.com.tr",
+    "com.cn": "craigslist.com.cn",
+    "org.cn": "isp.org.cn",
+    "-632.com": "K-632.com"
+}
+
 
 KEYWORDS = {
     'electronics': [
